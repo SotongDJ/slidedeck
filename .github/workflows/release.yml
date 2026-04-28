@@ -1,0 +1,29 @@
+name: Release Skill
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build skill zip
+        run: |
+          mkdir -p _tmp
+          cp README.md _tmp/SKILL.md
+          cd _tmp
+          zip "mobile-slidedeck-${{ github.ref_name }}.skill" SKILL.md
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Slidedeck Skill ${{ github.ref_name }}"
+          files: _tmp/mobile-slidedeck-${{ github.ref_name }}.skill
+          generate_release_notes: true
