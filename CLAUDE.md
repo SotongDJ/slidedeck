@@ -72,4 +72,13 @@ Generated HTML must use **zero indentation** and **no comments**. These are inte
 
 ## Updating the Skill Spec
 
-When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **1.7.1** (2026-04-22).
+When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **2.0.0** (2026-05-01).
+
+### Version release workflow
+
+1. Edit `README.md`: bump version string and add changelog row
+2. `git add README.md`
+3. `git commit -S -m "<message>"` — GPG-signed commit
+4. `git push`
+5. `git tag -s vX.Y.Z -m "vX.Y.Z: <short description>"` — GPG-signed tag
+6. `git push origin vX.Y.Z`
