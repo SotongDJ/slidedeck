@@ -1,21 +1,34 @@
 ---
 name: mobile-slidedeck
 description: >
-  Create a single-page mobile slide deck web app with vanilla JS and CSS — no external frameworks.
-  Default orientation is portrait (9:16); use landscape (16:9) when the user says "landscape", "horizontal slides",
-  "widescreen", "desktop slides", or "16:9". Supports a runtime orientation-toggle button so users can switch in-browser.
-  Use this skill whenever the user asks to turn content, chapters, or sections into a slide deck, presentation, or swipeable mobile web app.
-  Trigger on phrases like "make slides", "mobile slide deck", "swipeable presentation", "one slide per chapter", or any request to present structured content as vertical or horizontal slides.
-  Always use this skill when the user asks for a slide-based layout optimised for phones, portrait devices, or widescreen displays.
-  Also trigger when the content includes data comparisons, ratings, rankings, scorecards, tier progressions, or any structured data that benefits from charts, radar plots, stat strips, or visual matrices.
+  Create a single-page Card Box web app with vanilla JS and CSS — no external frameworks.
+  Three-level hierarchy: Box → Set → Card. A Set with one Card is equivalent to a classic slide.
+  Default orientation is portrait (9:16); use landscape (16:9) for "landscape", "widescreen", "desktop", or "16:9".
+  Supports a runtime orientation-toggle.
+  Navigation: horizontal swipe/arrows/keyboard moves between Sets; vertical moves between Cards within a Set.
+  Cover card (first card of a multi-card Set) expands on tap/click/SPACE.
+  Use this skill whenever the user asks to turn content into a slide deck, presentation, card box, or swipeable mobile web app.
+  Trigger on: "make slides", "mobile slide deck", "swipeable presentation", "card box", "one slide per chapter",
+  or any request to present structured content as navigable cards.
+  Also trigger for data comparisons, ratings, rankings, scorecards, tier progressions, or content that benefits
+  from charts, radar plots, stat strips, or visual matrices.
 ---
 
-# Mobile Slide Deck Skill
+# Mobile Card Box Skill
 
-Converts structured content (chapters / sections) into a polished single-page web app.
+Converts structured content into a polished single-page web app with 2D card navigation.
 Output: one self-contained `.html` file. No external JS or CSS frameworks.
 
-**Version: 1.7.1**
+**Three-level hierarchy:**
+- **Box** — the whole app (one per file); the HTML body is the desktop surface
+- **Set** — a group of thematically related Cards; Sets are arranged horizontally
+- **Card** — an individual content unit within a Set; Cards within a Set are stacked vertically
+
+A Set with one Card renders identically to a classic slide (no cover mechanic).
+A Set with multiple Cards shows Card 0 as a **cover**; tap / click / SPACE expands downward to reveal Cards 1…N.
+Navigating UP back to Card 0 collapses the Set.
+
+**Version: 2.0.0**
 
 ---
 
@@ -23,15 +36,16 @@ Output: one self-contained `.html` file. No external JS or CSS frameworks.
 
 | Version | Date | Changes |
 |---|---|---|
-| **1.7.1** | 2026-04-22 | 8-J Radar chart rewritten with overflow-safe layout: landscape slide gets align-self:stretch + margin:0; radar-wrap switches column/row per orientation; radar-svg-box is height-driven in landscape via height:100% + aspect-ratio + max-width:58%; SVG gains preserveAspectRatio; viewBox formula documented; 6-axis pre-computed vectors table added |
-| **1.7.0** | 2026-04-22 | New visualization library in Step 8: SVG radar chart, segment bar, stat strip, KPI insight card, quote callout (ok/warn/danger), tier ladder, brand accent card; new CSS vars --accent, --accent-bg, --ok, --ok-bg, --warn, --warn-bg, --danger, --danger-bg defined in both light and dark; Composition guide table added; print function updated to inline new semantic vars |
-| **1.6.0** | 2026-04-11 | Print/PDF button (fa-print); slidesToPrintPDF() opens a new window with all slides as individual print pages, inlines live CSS vars + theme, scales font size proportionally, triggers window.print(); right-side order: orient · theme · print · share · reset |
-| **1.5.0** | 2026-04-11 | Codename + Font Awesome kit required; FA icons replace text labels; personalization persisted to localStorage + URL query string via history.pushState(); Share (Web Share API) + Reset buttons |
-| **1.4.1** | 2026-04-10 | Fix: restored missing Step 0 heading; removed stale body margin from spacing philosophy and checklist |
-| **1.4.0** | 2026-04-10 | Deck always centred via body flex; safe-area insets prevent cropping on notched/rounded devices; viewport-fit=cover; 100dvh replaces 100vh |
+| **2.0.0** | 2026-05-01 | Layout replaced: slide deck → Card Box. Three-level hierarchy (Box → Set → Card). 2D navigation: horizontal between Sets (←→), vertical between Cards (↑↓). Cover card expand/collapse on tap/click/SPACE. Directional nav buttons (4 edges) replace bottom dot bar. Page indicator: `SET 01/N · Y/M` (card suffix omitted for single-card Sets). `card-track` height = `numCards×100dvh`; `set-track` width = `numSets×100vw`; both translated by percentage. Font-size controlled via `--card-font` CSS var set on `.box`. |
+| **1.7.1** | 2026-04-22 | Radar chart overflow-safe layout; align-self:stretch + margin:0 on landscape slide; height-driven sizing in landscape; preserveAspectRatio; viewBox formula; 6-axis pre-computed vectors |
+| **1.7.0** | 2026-04-22 | Visualization library: SVG radar chart, segment bar, stat strip, KPI insight card, quote callout, tier ladder, brand accent card; semantic CSS vars |
+| **1.6.0** | 2026-04-11 | Print/PDF button; slidesToPrintPDF(); orientation-aware |
+| **1.5.0** | 2026-04-11 | Codename + FA icons; localStorage + URL query string persistence; Share + Reset |
+| **1.4.1** | 2026-04-10 | Restored Step 0 heading; removed stale body margin |
+| **1.4.0** | 2026-04-10 | Deck always centred; safe-area insets; viewport-fit=cover; 100dvh |
 | **1.3.0** | 2026-04-10 | Output HTML/CSS/JS: zero indentation, no comments |
-| **1.2.0** | 2026-04-10 | Font size buttons moved to topbar centre; range 3-69px step 3; portrait default 21px, landscape 18px |
-| **1.1.0** | 2026-04-10 | Added orientation toggle; runtime data-orient attribute; orientation-aware font-size defaults |
+| **1.2.0** | 2026-04-10 | Font size buttons centred; range 3-69px step 3; portrait default 21px, landscape 18px |
+| **1.1.0** | 2026-04-10 | Orientation toggle; runtime data-orient attribute |
 | **1.0.0** | 2026-04-10 | Initial release |
 
 ---
@@ -52,9 +66,10 @@ Before writing any code, collect from the user if not already provided:
 
 1. **Codename** (required) — output filename and localStorage key prefix.
 2. **Font Awesome kit URL** (required) — `https://kit.fontawesome.com/{10-digit-id}.js`.
-3. Number of slides.
-4. Detect orientation: Portrait (default, 9:16) or Landscape (16:9). Keywords: "landscape", "horizontal", "widescreen", "desktop", "16:9".
-5. Always include the orientation-toggle button in the topbar.
+3. **Number of Sets** (N).
+4. **Cards per Set** — array `[c0, c1, …, cN-1]`; value `1` = single-card Set (no cover/expand mechanic).
+5. Detect orientation: Portrait (default, 9:16) or Landscape (16:9).
+6. Always include the orientation-toggle button in the topbar.
 
 ---
 
@@ -67,78 +82,217 @@ Before writing any code, collect from the user if not already provided:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>...</title>
+<link href="https://fonts.googleapis.com/..." rel="stylesheet">
 <script src="https://kit.fontawesome.com/{10-digit-id}.js" crossorigin="anonymous"></script>
 </head>
 <body>
-<div class="deck" id="deck">
-<div class="deck-top"> ... </div>
-<div class="slides-area">
-<div class="slides-track" id="track">
-</div>
-</div>
-<div class="deck-bot"> ... </div>
+<div class="box" id="box">
+
+  <!-- Topbar -->
+  <div class="box-top" id="boxTop">
+    <div class="top-left"><span id="pageNum"></span></div>
+    <div class="top-center">
+      <button id="btnMinus">A-</button>
+      <button id="btnPlus">A+</button>
+    </div>
+    <div class="top-right">
+      <button id="orientBtn"></button>
+      <button id="themeBtn"></button>
+      <button id="printBtn"><i class="fa-solid fa-fw fa-print"></i></button>
+      <button id="shareBtn"><i class="fa-solid fa-fw fa-share"></i></button>
+      <button id="resetBtn"><i class="fa-solid fa-fw fa-arrow-rotate-left"></i></button>
+    </div>
+  </div>
+
+  <!-- Set track — horizontal rail -->
+  <div class="set-track" id="setTrack">
+
+    <!-- Multi-card Set example (Set 0, 3 Cards) -->
+    <div class="set" data-set="0">
+      <div class="card-track" id="ct0">
+        <div class="card">
+          <div class="card-face cover-card">
+            <!-- cover card content: slide-tag, h2.slide-title, etc. -->
+            <div class="expand-hint"><i class="fa-solid fa-fw fa-chevron-down"></i></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-face"><!-- card 1 content --></div>
+        </div>
+        <div class="card">
+          <div class="card-face"><!-- card 2 content --></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single-card Set example (Set 1) -->
+    <div class="set" data-set="1">
+      <div class="card-track" id="ct1">
+        <div class="card">
+          <div class="card-face"><!-- single card content --></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Directional nav buttons -->
+  <button class="nav-btn nav-left"  id="navLeft"><i class="fa-solid fa-fw fa-chevron-left"></i></button>
+  <button class="nav-btn nav-right" id="navRight"><i class="fa-solid fa-fw fa-chevron-right"></i></button>
+  <button class="nav-btn nav-up"   id="navUp"><i class="fa-solid fa-fw fa-chevron-up"></i></button>
+  <button class="nav-btn nav-down" id="navDown"><i class="fa-solid fa-fw fa-chevron-down"></i></button>
+
 </div>
 </body>
 ```
+
+**Authoring rules:**
+- `.cover-card` class only on the first `.card-face` of a multi-card Set (CPR[s] > 1). Never on single-card Sets.
+- `.expand-hint` only inside `.cover-card`.
+- Each `.card-track` has `id="ct{s}"` where s = Set index (0-based).
+- Each `.set` has `data-set="{s}"`.
 
 ---
 
 ## Step 2 — CSS rules (must follow exactly)
 
 ```css
-div { padding: 0.1%; margin: 0; }
 html, body, h2, table, th, td, hr { margin: 0; padding: 0; }
+div { padding: 0; margin: 0; }
 *, *::before, *::after { box-sizing: border-box; }
+
 body {
-min-height: 100dvh;
+width: 100vw;
+height: 100dvh;
+overflow: hidden;
+background: var(--bg-outer);
+}
+
+.box {
+position: fixed;
+top: 0; left: 0;
+width: 100vw;
+height: 100dvh;
+overflow: hidden;
+background: var(--bg-outer);
+--top-h: 40px;
+}
+
+.box-top {
+position: absolute;
+top: 0; left: 0; right: 0;
+z-index: 200;
+height: var(--top-h);
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 0.5em;
+background: var(--bg);
+border-bottom: 1px solid var(--border);
+font-size: 14px;
+}
+
+.set-track {
+display: flex;
+flex-direction: row;
+height: 100dvh;
+will-change: transform;
+transition: transform 0.55s cubic-bezier(0.77,0,0.175,1);
+}
+
+.set {
+flex: 0 0 100vw;
+height: 100dvh;
+overflow: hidden;
 display: flex;
 align-items: center;
 justify-content: center;
-overflow: hidden;
-padding: max(4vw, env(safe-area-inset-top))
-         max(4vw, env(safe-area-inset-right))
-         max(4vw, env(safe-area-inset-bottom))
-         max(4vw, env(safe-area-inset-left));
 }
-.deck {
---aw: calc(100vw - 8vw - env(safe-area-inset-left) - env(safe-area-inset-right));
---ah: calc(100dvh - 8vw - env(safe-area-inset-top)  - env(safe-area-inset-bottom));
-width:  min(var(--aw), calc(var(--ah) * 9 / 16));
-height: min(var(--ah), calc(var(--aw) * 16 / 9));
-font-size: clamp(16px, 7vw, 28px);
-background: var(--bg);
+
+.card-track {
 display: flex;
 flex-direction: column;
-flex-shrink: 0;
-position: relative;
-overflow: hidden;
+will-change: transform;
+transition: transform 0.55s cubic-bezier(0.77,0,0.175,1);
 }
-[data-orient="landscape"] .deck {
-width:  min(var(--aw), calc(var(--ah) * 16 / 9));
-height: min(var(--ah), calc(var(--aw) * 9 / 16));
-font-size: clamp(12px, 3.5vw, 22px);
-}
-.slides-track {
+
+.card {
+flex: 0 0 100dvh;
+width: 100vw;
 display: flex;
 align-items: center;
-width: 400%;
-height: 100%;
-will-change: transform;
-transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
+justify-content: center;
 }
-.slide {
-flex: 0 0 25%;
-height: auto;
-margin-top: auto;
-margin-bottom: auto;
+
+.card-face {
+--aw: calc(100vw - 8vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+--ah: calc(100dvh - var(--top-h) - 8vw - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+width: min(var(--aw), calc(var(--ah) * 9 / 16));
+height: min(var(--ah), calc(var(--aw) * 16 / 9));
+font-size: var(--card-font, clamp(16px, 7vw, 28px));
+background: var(--bg);
 display: flex;
 flex-direction: column;
 gap: 0.5em;
 overflow: hidden;
+flex-shrink: 0;
+position: relative;
 }
+
+[data-orient="landscape"] .card-face {
+width: min(var(--aw), calc(var(--ah) * 16 / 9));
+height: min(var(--ah), calc(var(--aw) * 9 / 16));
+font-size: var(--card-font, clamp(12px, 3.5vw, 22px));
+}
+
+.cover-card { cursor: pointer; }
+
+.expand-hint {
+position: absolute;
+bottom: 0.5em;
+left: 50%;
+transform: translateX(-50%);
+color: var(--text-muted);
+font-size: 0.8em;
+pointer-events: none;
+animation: expandBounce 1.8s ease-in-out infinite;
+}
+@keyframes expandBounce {
+0%,100% { opacity:0.45; transform:translateX(-50%) translateY(0); }
+50% { opacity:1; transform:translateX(-50%) translateY(4px); }
+}
+
+.nav-btn {
+position: absolute;
+z-index: 150;
+background: var(--surface);
+border: 1px solid var(--border);
+color: var(--text-muted);
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+width: 2em;
+height: 2em;
+border-radius: 50%;
+font-size: 13px;
+opacity: 0.65;
+transition: opacity 0.2s;
+padding: 0;
+}
+.nav-btn:hover { opacity: 1; }
+.nav-btn:disabled { opacity: 0.15; pointer-events: none; }
+.nav-left  { left: 0.4em; top: 50%; transform: translateY(-50%); }
+.nav-right { right: 0.4em; top: 50%; transform: translateY(-50%); }
+.nav-up   { top: calc(var(--top-h) + 0.4em); left: 50%; transform: translateX(-50%); }
+.nav-down  { bottom: calc(env(safe-area-inset-bottom) + 0.4em); left: 50%; transform: translateX(-50%); }
 ```
 
-For n slides: `width: n*100%; each .slide flex: 0 0 calc(100%/n)`.
+**Width/height rules:**
+- `set-track` width = `SETS * 100vw` — set by JS on init.
+- Each `card-track` height = `CPR[s] * 100dvh` — set by JS on init.
+- `.card-face` dimensions are viewport-based (independent of parent padding).
+- Translations are percentage-based: `translateX(-(curSet/SETS)*100%)` and `translateY(-(curCard[s]/CPR[s])*100%)`.
 
 ---
 
@@ -179,12 +333,12 @@ Cycle: `light → dark → system → light`. `system` reads `prefers-color-sche
 
 ---
 
-## Step 4 — Topbar (`deck-top`)
+## Step 4 — Topbar (`box-top`)
 
 Layout: `[ page-num ] | [ A− ] [ A+ ] | [ orient ] [ theme ] [ print ] [ share ] [ reset ]`
 
 ```html
-<div class="deck-top">
+<div class="box-top" id="boxTop">
 <div class="top-left"><span id="pageNum"></span></div>
 <div class="top-center">
 <button id="btnMinus">A-</button>
@@ -204,24 +358,42 @@ FA icons: orient portrait=`fa-up-down` / landscape=`fa-left-right`; theme light=
 A-/A+ range: 3–69px, step 3px; portrait default 21px, landscape 18px.
 Share button: hidden (`display:none`) when `!navigator.share`.
 
+**Page indicator:**
+- Single-card Set: `01/N`
+- Multi-card Set: `01/N · Y/M` where Y = curCard[curSet]+1, M = CPR[curSet]
+
 ---
 
-## Step 5 — Bottom bar (`deck-bot`)
+## Step 5 — Directional nav buttons
 
-`[ ‹ ] [ dots ] [ › ]`. Dots `.on` = current slide. Keyboard: ArrowLeft/Up=prev, ArrowRight/Down=next. Touch swipe >36px.
+Four edge-positioned buttons replace the old bottom dots bar.
+
+```html
+<button class="nav-btn nav-left"  id="navLeft"><i class="fa-solid fa-fw fa-chevron-left"></i></button>
+<button class="nav-btn nav-right" id="navRight"><i class="fa-solid fa-fw fa-chevron-right"></i></button>
+<button class="nav-btn nav-up"   id="navUp"><i class="fa-solid fa-fw fa-chevron-up"></i></button>
+<button class="nav-btn nav-down" id="navDown"><i class="fa-solid fa-fw fa-chevron-down"></i></button>
+```
+
+Disabled states:
+- `navLeft`: `curSet === 0`
+- `navRight`: `curSet === SETS - 1`
+- `navUp`: `curCard[curSet] === 0`
+- `navDown`: `CPR[curSet] === 1` OR `curCard[curSet] === CPR[curSet] - 1`
 
 ---
 
 ## Step 6 — JavaScript (vanilla)
 
-localStorage keys: `{CODENAME}.page`, `.font`, `.theme`, `.orient`.
-URL params: `?page=&font=&theme=&orient=` kept in sync via `history.pushState`.
+localStorage keys: `{CODENAME}.set`, `.cards` (JSON array), `.font`, `.theme`, `.orient`.
+URL params: `?set=&cards=&font=&theme=&orient=` kept in sync via `history.pushState`.
 Boot order: URL params → localStorage → hardcoded defaults.
 
 ```js
 (function () {
 const CODENAME = '{codename}';
-const TOTAL = n;
+const SETS = N;
+const CPR = [c0, c1];
 const FONT_PORTRAIT = 21;
 const FONT_LANDSCAPE = 18;
 const MIN_FONT = 3, MAX_FONT = 69, STEP = 3;
@@ -229,32 +401,61 @@ const THEMES = ['light', 'dark', 'system'];
 const mq = window.matchMedia('(prefers-color-scheme: dark)');
 const sp = new URLSearchParams(location.search);
 const ls = k => localStorage.getItem(CODENAME + '.' + k);
-let cur = parseInt(sp.get('page') ?? ls('page') ?? 0, 10);
+let curSet = parseInt(sp.get('set') ?? ls('set') ?? 0, 10);
+curSet = Math.max(0, Math.min(SETS - 1, curSet));
+let curCard;
+try { curCard = JSON.parse(sp.get('cards') ?? ls('cards') ?? 'null'); } catch(_) { curCard = null; }
+if (!Array.isArray(curCard) || curCard.length !== SETS) curCard = new Array(SETS).fill(0);
+curCard = curCard.map((v, s) => Math.max(0, Math.min(CPR[s] - 1, v)));
 let baseFontPx = parseInt(sp.get('font') ?? ls('font') ?? FONT_PORTRAIT, 10);
 let ti = THEMES.indexOf(sp.get('theme') ?? ls('theme') ?? 'light');
 if (ti < 0) ti = 0;
 const initOrient = sp.get('orient') ?? ls('orient') ?? 'portrait';
 function getOrient() { return document.documentElement.dataset.orient || 'portrait'; }
 function persist() {
-const p = { page: cur, font: baseFontPx, theme: THEMES[ti], orient: getOrient() };
-localStorage.setItem(CODENAME + '.page', p.page);
-localStorage.setItem(CODENAME + '.font', p.font);
-localStorage.setItem(CODENAME + '.theme', p.theme);
-localStorage.setItem(CODENAME + '.orient', p.orient);
-history.pushState(null, '', '?' + new URLSearchParams(p).toString());
+localStorage.setItem(CODENAME + '.set', curSet);
+localStorage.setItem(CODENAME + '.cards', JSON.stringify(curCard));
+localStorage.setItem(CODENAME + '.font', baseFontPx);
+localStorage.setItem(CODENAME + '.theme', THEMES[ti]);
+localStorage.setItem(CODENAME + '.orient', getOrient());
+const p = new URLSearchParams({ set: curSet, cards: JSON.stringify(curCard), font: baseFontPx, theme: THEMES[ti], orient: getOrient() });
+history.pushState(null, '', '?' + p.toString());
 }
-function setSlide(i) {
-cur = Math.max(0, Math.min(TOTAL - 1, i));
-track.style.transform = 'translateX(' + (-cur * (100 / TOTAL)) + '%)';
-pageNum.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
-dots.forEach((d, j) => d.classList.toggle('on', j === cur));
-prevBtn.disabled = cur === 0;
-nextBtn.disabled = cur === TOTAL - 1;
+function updatePageNum() {
+const s = String(curSet + 1).padStart(2, '0') + '/' + String(SETS).padStart(2, '0');
+const c = CPR[curSet] > 1 ? ' · ' + (curCard[curSet] + 1) + '/' + CPR[curSet] : '';
+pageNum.textContent = s + c;
+}
+function updateNavState() {
+updatePageNum();
+navLeft.disabled = curSet === 0;
+navRight.disabled = curSet === SETS - 1;
+navUp.disabled = curCard[curSet] === 0;
+navDown.disabled = CPR[curSet] === 1 || curCard[curSet] === CPR[curSet] - 1;
+}
+function goSet(i) {
+curSet = Math.max(0, Math.min(SETS - 1, i));
+setTrack.style.transform = 'translateX(' + (-(curSet / SETS) * 100) + '%)';
+updateNavState();
 persist();
+}
+function goCard(s, i) {
+curCard[s] = Math.max(0, Math.min(CPR[s] - 1, i));
+const ct = document.getElementById('ct' + s);
+ct.style.transform = 'translateY(' + (-(curCard[s] / CPR[s]) * 100) + '%)';
+updateNavState();
+persist();
+}
+function doNavLeft()  { goSet(curSet - 1); }
+function doNavRight() { goSet(curSet + 1); }
+function doNavUp()    { goCard(curSet, curCard[curSet] - 1); }
+function doNavDown()  { if (CPR[curSet] > 1) goCard(curSet, curCard[curSet] + 1); }
+function toggleExpand() {
+if (CPR[curSet] > 1) { curCard[curSet] === 0 ? doNavDown() : goCard(curSet, 0); }
 }
 function setFont(px) {
 baseFontPx = Math.max(MIN_FONT, Math.min(MAX_FONT, px));
-deck.style.fontSize = baseFontPx + 'px';
+box.style.setProperty('--card-font', baseFontPx + 'px');
 btnMinus.disabled = baseFontPx <= MIN_FONT;
 btnPlus.disabled = baseFontPx >= MAX_FONT;
 persist();
@@ -270,12 +471,19 @@ orientBtn.innerHTML = o === 'portrait'
 ? '<i class="fa-solid fa-fw fa-up-down"></i>'
 : '<i class="fa-solid fa-fw fa-left-right"></i>';
 }
+setTrack.style.width = (SETS * 100) + 'vw';
+for (let s = 0; s < SETS; s++) {
+const ct = document.getElementById('ct' + s);
+ct.style.height = (CPR[s] * 100) + 'dvh';
+}
 setOrient(initOrient);
 setFont(baseFontPx);
 applyTheme(THEMES[ti]);
-setSlide(cur);
+goSet(curSet);
+for (let s = 0; s < SETS; s++) { if (curCard[s] > 0) goCard(s, curCard[s]); }
+updateNavState();
 btnMinus.addEventListener('click', () => setFont(baseFontPx - STEP));
-btnPlus.addEventListener('click', () => setFont(baseFontPx + STEP));
+btnPlus.addEventListener('click',  () => setFont(baseFontPx + STEP));
 orientBtn.addEventListener('click', () => {
 const next = getOrient() === 'portrait' ? 'landscape' : 'portrait';
 setOrient(next);
@@ -287,23 +495,38 @@ mq.addEventListener('change', () => { if (THEMES[ti] === 'system') applyTheme('s
 if (!navigator.share) { shareBtn.style.display = 'none'; }
 else { shareBtn.addEventListener('click', () => navigator.share({ title: document.title, url: location.href })); }
 resetBtn.addEventListener('click', () => {
-['.page', '.font', '.theme', '.orient'].forEach(k => localStorage.removeItem(CODENAME + k));
+['set', 'cards', 'font', 'theme', 'orient'].forEach(k => localStorage.removeItem(CODENAME + '.' + k));
 history.replaceState(null, '', location.pathname);
 location.reload();
 });
-prevBtn.addEventListener('click', () => setSlide(cur - 1));
-nextBtn.addEventListener('click', () => setSlide(cur + 1));
-dots.forEach((d, i) => d.addEventListener('click', () => setSlide(i)));
 printBtn.addEventListener('click', slidesToPrintPDF);
-let tx = 0;
-deck.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-deck.addEventListener('touchend', e => {
+navLeft.addEventListener('click', doNavLeft);
+navRight.addEventListener('click', doNavRight);
+navUp.addEventListener('click', doNavUp);
+navDown.addEventListener('click', doNavDown);
+document.querySelectorAll('.cover-card').forEach(cc => {
+const s = parseInt(cc.closest('.set').dataset.set);
+cc.addEventListener('click', e => {
+if (s === curSet && curCard[s] === 0 && !e.target.closest('button,a')) doNavDown();
+});
+});
+let tx = 0, ty = 0;
+box.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+box.addEventListener('touchend', e => {
 const dx = e.changedTouches[0].clientX - tx;
-if (Math.abs(dx) > 36) setSlide(cur + (dx < 0 ? 1 : -1));
+const dy = e.changedTouches[0].clientY - ty;
+if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 36) {
+dx < 0 ? doNavRight() : doNavLeft();
+} else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 36) {
+dy < 0 ? doNavDown() : doNavUp();
+}
 }, { passive: true });
 document.addEventListener('keydown', e => {
-if (['ArrowRight', 'ArrowDown'].includes(e.key)) setSlide(cur + 1);
-if (['ArrowLeft', 'ArrowUp'].includes(e.key)) setSlide(cur - 1);
+if (e.key === 'ArrowLeft')  { e.preventDefault(); doNavLeft(); }
+if (e.key === 'ArrowRight') { e.preventDefault(); doNavRight(); }
+if (e.key === 'ArrowUp')    { e.preventDefault(); doNavUp(); }
+if (e.key === 'ArrowDown')  { e.preventDefault(); doNavDown(); }
+if (e.key === ' ')          { e.preventDefault(); toggleExpand(); }
 });
 })();
 ```
@@ -312,12 +535,12 @@ if (['ArrowLeft', 'ArrowUp'].includes(e.key)) setSlide(cur - 1);
 
 ## Step 6.5 — `slidesToPrintPDF()` (print / Save-as-PDF)
 
+Iterates every `.card-face` across all Sets and Cards in DOM order.
+
 | Mode | @page size | px ref |
 |---|---|---|
 | Portrait | 210mm 373mm | 794 × 1417 px |
 | Landscape | 297mm 167mm | 1122 × 630 px |
-
-Font scale: `scale = Math.min(pageWpx/deckRect.width, pageHpx/deckRect.height); printFontPx = Math.round(deckFontPx * scale)`
 
 ```js
 function slidesToPrintPDF() {
@@ -328,10 +551,11 @@ const pageW = isLandscape ? '297mm' : '210mm';
 const pageH = isLandscape ? '167mm' : '373mm';
 const pageWpx = isLandscape ? 1122 : 794;
 const pageHpx = isLandscape ? 630 : 1417;
-const deckRect = deck.getBoundingClientRect();
-const deckFontPx = parseFloat(getComputedStyle(deck).fontSize);
-const scale = Math.min(pageWpx / deckRect.width, pageHpx / deckRect.height);
-const printFontPx = Math.round(deckFontPx * scale);
+const firstFace = document.querySelector('.card-face');
+const faceRect = firstFace.getBoundingClientRect();
+const faceFontPx = parseFloat(getComputedStyle(firstFace).fontSize);
+const scale = Math.min(pageWpx / faceRect.width, pageHpx / faceRect.height);
+const printFontPx = Math.round(faceFontPx * scale);
 const cs = getComputedStyle(html);
 const cssVarNames = [
 '--bg','--bg-outer','--text','--text-muted','--border',
@@ -350,9 +574,9 @@ const overrides = '@page{size:' + pageW + ' ' + pageH + ';margin:0}' +
 'html,body{display:block!important;margin:0!important;padding:0!important}' +
 '.print-page{display:block!important;width:' + pageWpx + 'px;height:' + pageHpx + 'px;page-break-after:always;break-after:page}' +
 '.print-page:last-child{page-break-after:avoid;break-after:avoid}' +
-'.print-page .slide{flex:none!important;width:' + pageWpx + 'px!important;height:' + pageHpx + 'px!important;font-size:' + printFontPx + 'px!important;display:flex!important;flex-direction:column!important;gap:0.45em!important;overflow:hidden!important}';
-const slides = [...document.querySelectorAll('.slide')];
-const pages = slides.map(s => '<div class="print-page">' + s.outerHTML + '</div>').join('');
+'.print-page .card-face{flex:none!important;width:' + pageWpx + 'px!important;height:' + pageHpx + 'px!important;font-size:' + printFontPx + 'px!important;display:flex!important;flex-direction:column!important;gap:0.45em!important;overflow:hidden!important}';
+const faces = [...document.querySelectorAll('.card-face')];
+const pages = faces.map(f => '<div class="print-page">' + f.outerHTML + '</div>').join('');
 const pw = window.open('', '_blank');
 pw.document.write('<!DOCTYPE html><html><head>'
 + (googleFontsHref ? '<link rel="stylesheet" href="' + googleFontsHref + '">' : '')
@@ -370,7 +594,7 @@ pw.onload = () => pw.print();
 
 | Role | Font |
 |---|---|
-| Slide title | Playfair Display (700) |
+| Card title | Playfair Display (700) |
 | Labels / data / mono | DM Mono (400, 500) |
 | Body / CJK | Noto Serif TC (300, 400, 600) |
 
@@ -382,7 +606,7 @@ pw.onload = () => pw.print();
 
 ## Step 8 — Visualization library
 
-Each slide: `slide-tag` (mono, muted) → `h2.slide-title` (Playfair, 1.82em) → content → optional `note-block`.
+Each card face: `slide-tag` (mono, muted) → `h2.slide-title` (Playfair, 1.82em) → content → optional `note-block`.
 
 **Choose the visualization that matches the data type. See Composition guide at the end of this section.**
 
@@ -498,37 +722,20 @@ Use for: ordered/unordered benefit lists.
 
 ### 8-F · Tier ladder NEW v1.7.0
 Use for: loyalty tiers, level progressions, qualification thresholds.
-Each row = one tier. Highlight top tier with brand-colour background inline.
-`.perm` = green (lifetime); `.limit` = amber (expiring).
 
 ```css
-.ladder{display:flex;flex-direction:column;gap:0;}
-.ladder-row{display:grid;grid-template-columns:2em 1fr auto;gap:0.6em;align-items:center;padding:0.55em 0;border-bottom:1px solid var(--border);}
-.ladder-row:last-child{border-bottom:none;}
-.ladder-n{font-family:'DM Mono',monospace;font-size:0.72em;color:var(--text-muted);}
-.ladder-l{font-weight:700;font-size:1.05em;}
-.ladder-l em{font-family:'DM Mono',monospace;font-size:0.65em;color:var(--text-muted);font-style:normal;display:inline-block;margin-left:0.4em;}
-.ladder-v{font-family:'DM Mono',monospace;font-size:0.72em;color:var(--text-muted);text-transform:uppercase;text-align:right;}
-.ladder-v.perm{color:var(--yes);}
-.ladder-v.limit{color:var(--warn);}
+.tier-row{display:flex;align-items:center;gap:0.7em;padding:0.5em 0;border-bottom:1px solid var(--border);}
+.tier-row:last-child{border-bottom:none;}
+.tier-badge{font-family:'DM Mono',monospace;font-size:0.65em;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:0.2em 0.55em;border-radius:2px;white-space:nowrap;}
+.tier-req{font-family:'DM Mono',monospace;font-size:0.72em;color:var(--text-muted);margin-left:auto;white-space:nowrap;}
 ```
 
 ```html
-<div class="ladder">
-<div class="ladder-row">
-<span class="ladder-n">01</span>
-<span class="ladder-l">Silver <em>sign-up</em></span>
-<span class="ladder-v perm">inf</span>
-</div>
-<div class="ladder-row">
-<span class="ladder-n">02</span>
-<span class="ladder-l">Gold <em>5 stays / 2yr</em></span>
-<span class="ladder-v perm">inf</span>
-</div>
-<div class="ladder-row" style="background:#0A2766;color:#fff;margin:0 -0.5em;padding-left:0.5em;padding-right:0.5em;">
-<span class="ladder-n" style="color:rgba(255,255,255,0.6);">03</span>
-<span class="ladder-l" style="color:#fff;">Platinum <em style="color:rgba(255,255,255,0.7);">15 stays / 2yr</em></span>
-<span class="ladder-v" style="color:#fff;">inf</span>
+<div style="display:flex;flex-direction:column;">
+<div class="tier-row">
+<span class="tier-badge" style="background:#C9A84C22;color:#C9A84C;">Gold</span>
+<span style="font-size:0.88em;">Lounge access + upgrade priority</span>
+<span class="tier-req">40 nights</span>
 </div>
 </div>
 ```
@@ -536,151 +743,99 @@ Each row = one tier. Highlight top tier with brand-colour background inline.
 ---
 
 ### 8-G · Stat strip NEW v1.7.0
-Use for: 2–4 hero KPI numbers side by side (usage stats, quick facts).
-Each cell: big value + label + optional detail line.
+Use for: 2–4 hero stats side by side.
 
 ```css
-.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);background:var(--surface);}
-.stat-cell{padding:0.75em 0.85em;border-right:1px solid var(--border);}
-.stat-cell:last-child{border-right:none;}
-.stat-cell .v{font-family:'Playfair Display',serif;font-weight:700;font-size:2.2em;line-height:1;color:var(--accent);letter-spacing:-0.015em;}
-.stat-cell .l{font-family:'DM Mono',monospace;font-size:0.65em;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-top:0.4em;}
-.stat-cell .d{font-size:0.75em;color:var(--text-muted);margin-top:0.2em;line-height:1.4;}
+.stat-strip{display:flex;gap:0.5em;flex:1;}
+.stat-cell{flex:1;background:var(--surface);padding:0.6em 0.5em;display:flex;flex-direction:column;gap:0.25em;}
+.stat-val{font-family:'DM Mono',monospace;font-size:1.6em;font-weight:500;line-height:1;}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:0.6em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;}
 ```
 
 ```html
 <div class="stat-strip">
 <div class="stat-cell">
-<div class="v">0</div>
-<div class="l">Breakfasts redeemed</div>
-<div class="d">Long-term Platinum users report zero successful claims</div>
+<span class="stat-val">142</span>
+<span class="stat-lbl">Hotels</span>
 </div>
 <div class="stat-cell">
-<div class="v">6 mo</div>
-<div class="l">Renewal window</div>
-<div class="d">Must re-qualify or be downgraded</div>
-</div>
-<div class="stat-cell">
-<div class="v">$141</div>
-<div class="l">Real benefit / yr</div>
-<div class="d">Coins + lounge + eSIM combined</div>
+<span class="stat-val">5</span>
+<span class="stat-lbl">Tiers</span>
 </div>
 </div>
 ```
-
-Use `repeat(2,1fr)` for portrait slides with longer detail text.
 
 ---
 
 ### 8-H · KPI Insight card NEW v1.7.0
-Use for: one dramatic number per entity, laid out 2–3 cards per slide.
-Brand colour bar at top via `--brand-accent`; number colour class (`.red`, `.blue`, `.teal`) for branding.
+Use for: one dramatic metric per entity, with delta and label.
 
 ```css
-.insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6em;flex:1;}
-.insight-card{border:1px solid var(--border);padding:0.7em 0.8em;display:flex;flex-direction:column;gap:0.3em;position:relative;}
-.insight-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--brand-accent,var(--accent));}
-.insight-plat{font-family:'DM Mono',monospace;font-size:0.65em;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;}
-.insight-num{font-family:'Playfair Display',serif;font-weight:700;font-size:3em;line-height:0.95;letter-spacing:-0.02em;color:var(--accent);}
-.insight-num.red{color:var(--no);}
-.insight-num.blue{color:#0A2766;}
-.insight-num.teal{color:#0E6E6E;}
-.insight-unit{font-family:'DM Mono',monospace;font-size:0.7em;color:var(--text-muted);}
-.insight-claim{font-weight:600;font-size:0.85em;line-height:1.3;}
-.insight-claim em{font-style:italic;font-weight:400;color:var(--text-muted);display:block;font-size:0.85em;margin-top:0.15em;}
-.insight-src{font-family:'DM Mono',monospace;font-size:0.6em;color:var(--text-muted);line-height:1.4;margin-top:auto;padding-top:0.3em;border-top:1px solid var(--border);}
+.kpi-card{background:var(--surface);padding:0.8em 1em;display:flex;flex-direction:column;gap:0.3em;flex:1;}
+.kpi-num{font-family:'DM Mono',monospace;font-size:2.4em;font-weight:500;line-height:1;}
+.kpi-delta{font-family:'DM Mono',monospace;font-size:0.72em;}
+.kpi-delta.up{color:var(--yes);}
+.kpi-delta.dn{color:var(--no);}
+.kpi-lbl{font-size:0.78em;color:var(--text-muted);}
 ```
 
 ```html
-<div class="insight-grid">
-<div class="insight-card" style="--brand-accent:#B83030;">
-<div class="insight-plat">Platform A</div>
-<div class="insight-num red">0</div>
-<div class="insight-unit">x free breakfast redeemed</div>
-<div class="insight-claim">Benefit on paper only<em>No successful redemption reported</em></div>
-<div class="insight-src">Independent review 2026</div>
+<div style="display:flex;gap:0.5em;flex:1;">
+<div class="kpi-card">
+<div class="kpi-num">87%</div>
+<div class="kpi-delta up">↑ 4pp vs last quarter</div>
+<div class="kpi-lbl">Member satisfaction</div>
 </div>
-<div class="insight-card" style="--brand-accent:#0A2766;">
-<div class="insight-plat">Platform B</div>
-<div class="insight-num blue">+/-0%</div>
-<div class="insight-unit">price delta L2 vs L3</div>
-<div class="insight-claim">Higher tier does not mean better price<em>Real value is priority support</em></div>
-<div class="insight-src">User A/B test, Reddit</div>
-</div>
-</div>
-```
-
-For portrait: use `repeat(2,1fr)` or `flex-direction:column`.
-
----
-
-### 8-I · Quote callout (ok / warn / danger) NEW v1.7.0
-Use for: user reviews, key warnings, editorial evidence. Stack vertically.
-Three variants: `ok` (green), `warn` (amber), `danger` (red).
-
-```css
-.qitem{padding:0.6em 0.75em;border-left:3px solid var(--border);background:var(--surface);margin-bottom:0.35em;}
-.qitem.ok{border-left-color:var(--accent);background:var(--accent-bg);}
-.qitem.warn{border-left-color:var(--warn);background:var(--warn-bg);}
-.qitem.danger{border-left-color:var(--no);background:var(--danger-bg);}
-.qitem .lbl{font-family:'DM Mono',monospace;font-size:0.62em;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.25em;}
-.qitem.ok .lbl{color:var(--accent);}
-.qitem.warn .lbl{color:var(--warn);}
-.qitem.danger .lbl{color:var(--no);}
-.qitem .txt{font-size:0.82em;line-height:1.5;}
-.qitem .src{font-family:'DM Mono',monospace;font-size:0.6em;color:var(--text-muted);margin-top:0.25em;}
-```
-
-```html
-<div class="qitem danger">
-<div class="lbl">X Renewal trap</div>
-<div class="txt">Must re-qualify every 6 months or be downgraded. Users call it a "punishment design".</div>
-<div class="src">Reddit community</div>
-</div>
-<div class="qitem warn">
-<div class="lbl">! Limited coverage</div>
-<div class="txt">Discounts only apply to undisclosed partner hotels.</div>
-<div class="src">Independent review</div>
-</div>
-<div class="qitem ok">
-<div class="lbl">+ Silver lining</div>
-<div class="txt">Base prices in Southeast Asia are competitive and stackable with credit-card codes.</div>
-<div class="src">User consensus</div>
 </div>
 ```
 
 ---
 
-### 8-J · SVG Radar chart NEW v1.7.0 · overflow-safe v1.7.1
-Use for: multi-dimensional comparison of 3+ entities across 5–8 axes.
-Pure SVG — zero libraries.
-
-> **The core sizing trap:** A radar SVG has a nearly-square viewBox; landscape slides are wide and short (16:9).
-> Sizing by width causes the derived height to overflow the slide. Follow the steps below exactly.
-
-**Step 1 — Fix height inheritance on landscape slides**
-
-The default `.slide` uses `margin-top:auto; margin-bottom:auto` for centering.
-`align-self:stretch` silently fails because auto margins consume free space first.
-Must zero the margins so stretch actually takes effect:
+### 8-I · Quote callout NEW v1.7.0
+Use for: user quotes, evidence snippets, warnings, confirmations.
+Variants: `ok` (green), `warn` (amber), `danger` (red).
 
 ```css
-.slide{height:auto;margin-top:auto;margin-bottom:auto;display:flex;flex-direction:column;gap:0.5em;overflow:hidden;}
-[data-orient="landscape"] .slide{align-self:stretch;margin-top:0;margin-bottom:0;}
+.quote-box{border-left:3px solid var(--qc,var(--border));background:var(--qbg,var(--surface));padding:0.6em 0.8em;font-size:0.85em;line-height:1.55;}
+.quote-box.ok{--qc:var(--ok);--qbg:var(--ok-bg);}
+.quote-box.warn{--qc:var(--warn);--qbg:var(--warn-bg);}
+.quote-box.danger{--qc:var(--danger);--qbg:var(--danger-bg);}
+.quote-attr{font-family:'DM Mono',monospace;font-size:0.75em;color:var(--text-muted);margin-top:0.4em;}
 ```
 
-**Step 2 — Wrapper layout: column (portrait) vs row (landscape)**
+```html
+<div class="quote-box warn">
+Points expiry is the #1 complaint from surveyed members.
+<div class="quote-attr">— 2024 loyalty survey, N=1,200</div>
+</div>
+```
+
+---
+
+### 8-J · SVG Radar chart NEW v1.7.0
+Use for: multi-dimension entity scoring (3–8 axes).
+
+**Step 1 — Landscape slide fix**
+
+In landscape, the `.card-face` holding a radar must stretch to fill its slot:
 
 ```css
-.radar-wrap{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;align-items:center;}
-[data-orient="landscape"] .radar-wrap{flex-direction:row;align-items:stretch;gap:0.5em;}
-[data-orient="landscape"] .radar-legend-box{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding-left:0.5em;border-left:1px solid var(--border);}
+[data-orient="landscape"] .card-face {
+align-self: stretch;
+margin-top: 0;
+margin-bottom: 0;
+}
 ```
 
-**Step 3 — SVG container: width-driven (portrait) vs height-driven (landscape)**
+**Step 2 — Radar wrap**
 
-Portrait slides are tall — width-driven is fine.
-Landscape slides are short — drive from height, derive width via `aspect-ratio`:
+```css
+.radar-wrap{display:flex;flex:1;min-height:0;min-width:0;}
+[data-orient="portrait"] .radar-wrap{flex-direction:column;}
+[data-orient="landscape"] .radar-wrap{flex-direction:row;align-items:stretch;}
+```
+
+**Step 3 — SVG box sizing (critical — prevents overflow)**
 
 ```css
 .radar-svg-box{flex:1;min-height:0;min-width:0;width:100%;overflow:hidden;}
@@ -848,7 +1003,7 @@ Use for: footnotes, methodology, caveats.
 | Single-series value ranking | 8-B Simple bar chart |
 | Footnotes / caveats | 8-L Caption box |
 
-Landscape slides are wider and shorter — prefer horizontal layouts (columns, wide tables, radar+legend) over tall stacked content.
+Landscape card faces are wider and shorter — prefer horizontal layouts (columns, wide tables, radar+legend) over tall stacked content.
 
 ---
 
@@ -857,31 +1012,41 @@ Landscape slides are wider and shorter — prefer horizontal layouts (columns, w
 - [ ] Codename collected; output file `{codename}.html`
 - [ ] Font Awesome kit in `<head>`
 - [ ] `viewport-fit=cover` in meta viewport
-- [ ] `body` flex-centred, `min-height:100dvh`, safe-area padding all four sides
-- [ ] `.deck` `--aw`/`--ah` subtract padding + safe-area insets; `flex-shrink:0`
-- [ ] `div { padding: 0.1%; margin: 0; }` global
-- [ ] `.deck` portrait `clamp(16px,7vw,28px)` / landscape `clamp(12px,3.5vw,22px)`
-- [ ] `[data-orient="landscape"]` overrides width/height to 16:9
-- [ ] `.slide` height `auto`, `margin-top/bottom: auto`
-- [ ] `.slides-track` `align-items: center`
-- [ ] A-/A+ centred; range 3–69px step 3; portrait default 21px, landscape 18px
-- [ ] Right side order: orient · theme · print · share · reset
-- [ ] FA icons correct per state (see Step 4)
+- [ ] `body` and `.box` both `width:100vw; height:100dvh; overflow:hidden`
+- [ ] `.box` has `--top-h: 40px`; font-size not set on box (topbar uses fixed 14px)
+- [ ] `.box-top` `position:absolute; z-index:200; height:var(--top-h)`
+- [ ] `.set-track` width set by JS on init: `SETS * 100vw`; height `100dvh`; horizontal transition
+- [ ] `.set` `flex: 0 0 100vw; height:100dvh; overflow:hidden; display:flex; align-items/justify-content: center`
+- [ ] `.card-track` height set by JS on init: `CPR[s] * 100dvh`; id `ct{s}`; vertical transition
+- [ ] `.card` `flex: 0 0 100dvh; width:100vw; display:flex; align-items/justify-content: center`
+- [ ] `.card-face` portrait: `width:min(--aw,--ah*9/16); height:min(--ah,--aw*16/9); font-size:var(--card-font,clamp(16px,7vw,28px))`
+- [ ] `.card-face` landscape: `width:min(--aw,--ah*16/9); height:min(--ah,--aw*9/16); font-size:var(--card-font,clamp(12px,3.5vw,22px))`
+- [ ] `--aw` subtracts `8vw` and horizontal safe-area insets from `100vw`
+- [ ] `--ah` subtracts `var(--top-h)`, `8vw`, and vertical safe-area insets from `100dvh`
+- [ ] `.cover-card` class only on first `.card-face` of multi-card Sets; `.expand-hint` inside
+- [ ] 4 directional nav buttons positioned at box edges; correct disabled states per nav rules
+- [ ] `goSet`: `setTrack.style.transform = translateX(-(curSet/SETS)*100%)`
+- [ ] `goCard`: `ct.style.transform = translateY(-(curCard[s]/CPR[s])*100%)`
+- [ ] `curCard` is Array(SETS); boot validates length and clamps values; persisted as JSON `.cards`
+- [ ] Page indicator: `01/N · Y/M` for multi-card Sets; `01/N` for single-card Sets
+- [ ] Touch swipe: horizontal threshold → set nav; vertical threshold → card nav; axis with larger delta wins
+- [ ] Keyboard: ← → = Sets; ↑ ↓ = Cards; SPACE = toggleExpand
+- [ ] Cover card click/tap → `doNavDown()`; guard: `s === curSet && curCard[s] === 0 && !e.target.closest('button,a')`
+- [ ] `setFont()` uses `box.style.setProperty('--card-font', px + 'px')`; range 3–69px step 3; portrait default 21px, landscape 18px
+- [ ] Right side topbar order: orient · theme · print · share · reset
+- [ ] FA icons correct per state
 - [ ] Share button hidden when `!navigator.share`
-- [ ] `slidesToPrintPDF()` orientation-aware; font scaled; NEW semantic vars inlined; stylesheets copied; `pw.print()` in onload
-- [ ] Print contains only `.print-page > .slide`
-- [ ] Reset clears all `{codename}.*` localStorage keys then reloads
-- [ ] Boot: URL params → localStorage → defaults
+- [ ] `slidesToPrintPDF()` iterates `document.querySelectorAll('.card-face')`; overrides target `.card-face` not `.slide`
+- [ ] Reset clears `{codename}.set`, `.cards`, `.font`, `.theme`, `.orient` then reloads
+- [ ] Boot order: URL params → localStorage → defaults for all state vars
 - [ ] `persist()` called after every state change
-- [ ] Theme light/dark/system all defined; NEW semantic vars (`--accent`, `--ok`, `--warn`, `--danger`, `--*-bg`) in both themes
-- [ ] Touch swipe, keyboard, dot nav working
+- [ ] Theme light/dark/system all defined; semantic vars (`--accent`, `--ok`, `--warn`, `--danger`, `--*-bg`) in both themes
 - [ ] No external JS/CSS framework
 - [ ] One self-contained `.html` file
 - [ ] Zero indentation in output
 - [ ] Zero comments in output
 - [ ] Visualization pattern(s) from Step 8 chosen to match content type
-- [ ] Radar (8-J): `[data-orient=landscape] .slide` has `align-self:stretch; margin-top:0; margin-bottom:0`
-- [ ] Radar (8-J): `.radar-wrap` is `flex-direction:column` portrait / `flex-direction:row` landscape
-- [ ] Radar (8-J): `.radar-svg-box` portrait is width-driven (`width:100%`); landscape is height-driven (`height:100%; width:auto; aspect-ratio:W/H; max-width:58%`)
+- [ ] Radar (8-J): landscape `.card-face` has `align-self:stretch; margin-top:0; margin-bottom:0`
+- [ ] Radar (8-J): `.radar-wrap` column in portrait, row in landscape
+- [ ] Radar (8-J): `.radar-svg-box` portrait width-driven; landscape height-driven with `aspect-ratio` and `max-width:58%`
 - [ ] Radar (8-J): SVG has `preserveAspectRatio="xMidYMid meet"`; viewBox includes label padding beyond outer ring
-- [ ] Radar (8-J): polygon points computed via trigonometry (angle = -90 + 360/N*i), no library
