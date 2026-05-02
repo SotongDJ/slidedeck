@@ -6,7 +6,7 @@ description: >
   Phase 2: Slidedeck as {codename}_desk.html — horizontal swipe, dot bar, portrait or landscape.
   Phase 3 (optional): Card Box as {codename}_box.html — 2D nav (Box→Set→Card); each slide becomes a cover card; user adds glossary, concept, or supplementary cards per set.
   Orient default is auto (detects viewport ratio); cycles auto/portrait/landscape.
-  Bilingual (EN+ZH-TW) toggle: ZH keeps proper nouns in English with formal translation in parentheses.
+  Default language is English only. Ask user if bilingual is needed and what the second language is.
   Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
   data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots.
 ---
@@ -27,7 +27,7 @@ Two output types, produced in sequence:
 - **Card** — an individual content unit within a Set; Cards are stacked vertically
 - Card 0 of each multi-card Set is the **cover** (the corresponding slide content); tap / click / SPACE expands downward.
 
-**Version: 2.1.2**
+**Version: 2.1.3**
 
 ---
 
@@ -35,6 +35,7 @@ Two output types, produced in sequence:
 
 | Version | Date | Changes |
 |---|---|---|
+| **2.1.3** | 2026-05-02 | Default language is English only. Phase 1 now asks user whether bilingual is needed and what the second language (L2) is. Bilingual rules generalised: L2 class is `.l2` / `lang-l2`; toggle label derived from L2 language; proper nouns stay in English with L2 translation in parentheses. |
 | **2.1.2** | 2026-05-02 | Trim `description` field to ≤1024 characters (was 1282). No functional change. |
 | **2.1.1** | 2026-05-02 | Orient toggle gains three modes: `auto` (default — detects `window.innerWidth >= window.innerHeight` at boot and on resize), `portrait`, `landscape`. Button cycles auto→portrait→landscape→auto; icon shows current effective orientation with an `A` badge in auto mode. |
 | **2.1.0** | 2026-05-02 | Three-phase workflow: Phase 1 input gathering → Phase 2 Slidedeck `{codename}_desk.html` → Phase 3 (optional) Card Box `{codename}_box.html`. Phase 3 card types: cover (= slide), glossary, concept, supplementary — user-specified per set. Bilingual toggle (EN/ZH-TW) documented in Phase 1. |
@@ -71,7 +72,7 @@ Before writing any code, collect:
 |---|---|---|
 | **Codename** | Yes | Short identifier; becomes filename prefix and `localStorage` key prefix |
 | **Font Awesome kit URL** | Yes | `https://kit.fontawesome.com/{10-digit-id}.js` — or a `<link>` stylesheet equivalent |
-| **Language** | Yes | `en` (English only), `zh` (Traditional Chinese only), or `bilingual` (EN + ZH-TW toggle) |
+| **Language** | Ask | Default: English only. Ask: "Do you need bilingual output? If so, what is the second language?" |
 | **Orientation** | Detect | `auto` (default), `portrait` (9:16), or `landscape` (16:9). Infer `portrait`/`landscape` from context ("widescreen", "desktop", "16:9"); otherwise use `auto`. |
 | **Focus topic** | If source is broad | Which aspect(s) of the source to emphasise in the deck |
 | **Slide count preference** | Optional | User may specify N; otherwise infer from content structure |
@@ -84,12 +85,13 @@ Before writing any code, collect:
 - In `auto` mode, re-detect on `window.addEventListener('resize', ...)` and re-apply without persisting.
 - Orient button icon: portrait=`fa-up-down` / landscape=`fa-left-right`; in `auto` mode prepend `A ` to the label or use a compound icon (implementation may vary).
 
-**Bilingual mode rules (when `language = bilingual`):**
-- Add a language-toggle button (showing "中" / "EN") in the topbar.
-- Every text element has a `.en` sibling and a `.zh` sibling.
-- CSS on the root container: `.lang-en .zh{display:none;}` / `.lang-zh .en{display:none;}`
-- In ZH mode, technical proper nouns stay in their original English form; append a formal ZH translation in parentheses: e.g. `編碼器 (Encoder)`.
-- `localStorage` key: `{codename}.lang`; URL param: `lang=`; default: `en`.
+**Bilingual mode rules (when user confirms bilingual + specifies L2):**
+- Default language is always **English** (`lang-en`); L2 is whatever the user specifies.
+- Add a language-toggle button in the topbar showing the L2 label (e.g. "中", "日", "ES") when in L1 mode, and "EN" when in L2 mode.
+- Every text element has a `.en` sibling (L1) and a `.l2` sibling (L2). Use `lang-en` / `lang-l2` classes on the root container.
+- CSS: `.lang-en .l2{display:none;}` / `.lang-l2 .en{display:none;}`
+- In L2 mode, technical proper nouns stay in their original English form; append the formal L2 translation in parentheses: e.g. `編碼器 (Encoder)` for ZH-TW.
+- `localStorage` key: `{codename}.lang`; URL param: `lang=`; values: `en` (default) or `l2`.
 
 ---
 
