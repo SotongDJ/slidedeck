@@ -28,7 +28,7 @@ A Set with one Card renders identically to a classic slide (no cover mechanic).
 A Set with multiple Cards shows Card 0 as a **cover**; tap / click / SPACE expands downward to reveal Cards 1…N.
 Navigating UP back to Card 0 collapses the Set.
 
-**Version: 2.0.0**
+**Version: 2.0.1**
 
 ---
 
@@ -36,6 +36,7 @@ Navigating UP back to Card 0 collapses the Set.
 
 | Version | Date | Changes |
 |---|---|---|
+| **2.0.1** | 2026-05-02 | Fix `.set` layout bug: `align-items:flex-start` (was `center`). Centering a multi-card `card-track` (CPR×100dvh) inside a 100dvh set pushed card 0 above the viewport, making cover cards invisible. |
 | **2.0.0** | 2026-05-01 | Layout replaced: slide deck → Card Box. Three-level hierarchy (Box → Set → Card). 2D navigation: horizontal between Sets (←→), vertical between Cards (↑↓). Cover card expand/collapse on tap/click/SPACE. Directional nav buttons (4 edges) replace bottom dot bar. Page indicator: `SET 01/N · Y/M` (card suffix omitted for single-card Sets). `card-track` height = `numCards×100dvh`; `set-track` width = `numSets×100vw`; both translated by percentage. Font-size controlled via `--card-font` CSS var set on `.box`. |
 | **1.7.1** | 2026-04-22 | Radar chart overflow-safe layout; align-self:stretch + margin:0 on landscape slide; height-driven sizing in landscape; preserveAspectRatio; viewBox formula; 6-axis pre-computed vectors |
 | **1.7.0** | 2026-04-22 | Visualization library: SVG radar chart, segment bar, stat strip, KPI insight card, quote callout, tier ladder, brand accent card; semantic CSS vars |
@@ -205,7 +206,7 @@ flex: 0 0 100vw;
 height: 100dvh;
 overflow: hidden;
 display: flex;
-align-items: center;
+align-items: flex-start;
 justify-content: center;
 }
 
@@ -1016,7 +1017,7 @@ Landscape card faces are wider and shorter — prefer horizontal layouts (column
 - [ ] `.box` has `--top-h: 40px`; font-size not set on box (topbar uses fixed 14px)
 - [ ] `.box-top` `position:absolute; z-index:200; height:var(--top-h)`
 - [ ] `.set-track` width set by JS on init: `SETS * 100vw`; height `100dvh`; horizontal transition
-- [ ] `.set` `flex: 0 0 100vw; height:100dvh; overflow:hidden; display:flex; align-items/justify-content: center`
+- [ ] `.set` `flex: 0 0 100vw; height:100dvh; overflow:hidden; display:flex; align-items:flex-start; justify-content:center`
 - [ ] `.card-track` height set by JS on init: `CPR[s] * 100dvh`; id `ct{s}`; vertical transition
 - [ ] `.card` `flex: 0 0 100dvh; width:100vw; display:flex; align-items/justify-content: center`
 - [ ] `.card-face` portrait: `width:min(--aw,--ah*9/16); height:min(--ah,--aw*16/9); font-size:var(--card-font,clamp(16px,7vw,28px))`
