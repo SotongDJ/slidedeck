@@ -27,7 +27,7 @@ Two output types, produced in sequence:
 - **Card** — an individual content unit within a Set; Cards are stacked vertically
 - Card 0 of each multi-card Set is the **cover** (the corresponding slide content); tap / click / SPACE expands downward.
 
-**Version: 2.1.3**
+**Version: 2.1.4**
 
 ---
 
@@ -35,6 +35,7 @@ Two output types, produced in sequence:
 
 | Version | Date | Changes |
 |---|---|---|
+| **2.1.4** | 2026-05-02 | Phase 3 radar fix — drop `align-self:stretch` on landscape `.card-face`. The 8-J Step 1 rule was authored for Phase 2 (`.slide` parent inside `.slides-area`, naturally bounded between topbar and dot bar). When v2.0.0 introduced Phase 3 (`.card` parent at 100dvh, topbar overlapping), the rule was carried over without re-validation; stretch caused `.card-face` to extend behind the topbar in landscape, hiding `.slide-tag`, `.slide-title`, and `.subline`. The natural `.card-face` sizing already accounts for `--top-h` via `--ah`, so no stretch is needed. Step 8-J now distinguishes Phase 2 (apply stretch via `.radar-slide` class) from Phase 3 (no stretch). Phase 3 design checklist inverts to forbid the rule; Phase 2 design checklist gains a symmetric entry. |
 | **2.1.3** | 2026-05-02 | Default language is English only. Phase 1 now asks user whether bilingual is needed and what the second language (L2) is. Bilingual rules generalised: L2 class is `.l2` / `lang-l2`; toggle label derived from L2 language; proper nouns stay in English with L2 translation in parentheses. |
 | **2.1.2** | 2026-05-02 | Trim `description` field to ≤1024 characters (was 1282). No functional change. |
 | **2.1.1** | 2026-05-02 | Orient toggle gains three modes: `auto` (default — detects `window.innerWidth >= window.innerHeight` at boot and on resize), `portrait`, `landscape`. Button cycles auto→portrait→landscape→auto; icon shows current effective orientation with an `A` badge in auto mode. |
@@ -392,6 +393,7 @@ Identical to Phase 3 Step 8 (see below). All 12 patterns (8-A through 8-L) apply
 - [ ] Boot order: URL params → localStorage → defaults; `persist()` after every state change
 - [ ] `slidesToPrintPDF()` targets `.slide-face`
 - [ ] Touch swipe ≥36px horizontal → `goTo`; keyboard `←→`
+- [ ] Radar (8-J) in Phase 2: landscape `.slide-face.radar-slide` has `align-self:stretch; margin-top:0; margin-bottom:0`
 - [ ] Zero indentation; zero comments in output
 
 ---
@@ -1258,17 +1260,25 @@ Points expiry is the #1 complaint from surveyed members.
 ### 8-J · SVG Radar chart NEW v1.7.0
 Use for: multi-dimension entity scoring (3–8 axes).
 
-**Step 1 — Landscape slide fix**
+**Step 1 — Landscape sizing (phase-dependent)**
 
-In landscape, the `.card-face` holding a radar must stretch to fill its slot:
+The frame element holding a radar in landscape needs different treatment in Phase 2 vs Phase 3.
+
+**Phase 2 (slide deck):** `.slide-face.radar-slide` must stretch to fill the area between topbar and bottom dot bar:
 
 ```css
-[data-orient="landscape"] .card-face {
+[data-orient="landscape"] .radar-slide {
 align-self: stretch;
 margin-top: 0;
 margin-bottom: 0;
 }
 ```
+
+Apply the `radar-slide` class to the relevant `.slide-face`.
+
+**Phase 3 (card box):** do **NOT** apply `align-self: stretch`. The standard `.card-face` already calculates `--ah` to subtract `var(--top-h)`, so the natural 16:9 frame fits cleanly between topbar and bottom safe area. The radar's `flex: 1` inside `.card-face` fills available vertical space without any override.
+
+Why no stretch in Phase 3: `.card-face`'s parent `.card` is `flex: 0 0 100dvh` — the full viewport. Applying `align-self: stretch` would expand `.card-face` to 100dvh tall, and the topbar (`position: absolute; top: 0`) would then cover the card-face's top region — hiding `.slide-tag`, `.slide-title`, and `.subline`.
 
 **Step 2 — Radar wrap**
 
@@ -1496,7 +1506,7 @@ Landscape card faces are wider and shorter — prefer horizontal layouts (column
 - [ ] Zero indentation in output
 - [ ] Zero comments in output
 - [ ] Visualization pattern(s) from Step 8 chosen to match content type
-- [ ] Radar (8-J): landscape `.card-face` has `align-self:stretch; margin-top:0; margin-bottom:0`
+- [ ] Radar (8-J) in Phase 3: landscape `.card-face` does **NOT** have `align-self:stretch`. Natural 16:9 sizing applies; radar's `flex:1` fills available height. (Stretch was a Phase 2 fix; in Phase 3 it pushes the top of the card behind the topbar.)
 - [ ] Radar (8-J): `.radar-wrap` column in portrait, row in landscape
 - [ ] Radar (8-J): `.radar-svg-box` portrait width-driven; landscape height-driven with `aspect-ratio` and `max-width:58%`
 - [ ] Radar (8-J): SVG has `preserveAspectRatio="xMidYMid meet"`; viewBox includes label padding beyond outer ring
