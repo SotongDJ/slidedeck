@@ -72,7 +72,7 @@ Generated HTML must use **zero indentation** and **no comments**. These are inte
 
 ## Updating the Skill Spec
 
-When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **2.1.1** (2026-05-02).
+When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **2.1.2** (2026-05-02).
 
 ### Version release workflow
 

@@ -1,17 +1,14 @@
 ---
 name: mobile-slidedeck
 description: >
-  Three-phase skill producing self-contained mobile web apps from structured content.
-  Phase 1: gather codename, FA kit URL, language (mono/bilingual), optional focus.
-  Phase 2: generate Slidedeck as {codename}_desk.html — horizontal swipe navigation, bottom dot bar, portrait or landscape.
-  Phase 3 (optional): generate Card Box as {codename}_box.html — 2D navigation (Box → Set → Card), each slide becomes a Set cover card, user specifies additional cards per set (term explanations, concept explanations, supplementary info).
-  Default orientation is portrait (9:16); landscape for "landscape", "widescreen", "desktop", or "16:9".
-  Bilingual toggle (EN + ZH-TW) added when user requests dual-language output; ZH keeps technical terms in original English with formal translation in parentheses.
-  Use this skill whenever the user asks to turn content into a slide deck, card box, presentation, or swipeable mobile web app.
-  Trigger on: "make slides", "slidedeck", "cardbox", "card box", "swipeable presentation", "one slide per chapter",
-  or any request to present structured content as navigable cards.
-  Also trigger for data comparisons, ratings, rankings, scorecards, tier progressions, or content that benefits
-  from charts, radar plots, stat strips, or visual matrices.
+  Three-phase skill for self-contained mobile web apps.
+  Phase 1: gather codename, FA kit URL, language (mono/bilingual), orientation, optional focus.
+  Phase 2: Slidedeck as {codename}_desk.html — horizontal swipe, dot bar, portrait or landscape.
+  Phase 3 (optional): Card Box as {codename}_box.html — 2D nav (Box→Set→Card); each slide becomes a cover card; user adds glossary, concept, or supplementary cards per set.
+  Orient default is auto (detects viewport ratio); cycles auto/portrait/landscape.
+  Bilingual (EN+ZH-TW) toggle: ZH keeps proper nouns in English with formal translation in parentheses.
+  Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
+  data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots.
 ---
 
 # Mobile Slidedeck & Card Box Skill
@@ -30,7 +27,7 @@ Two output types, produced in sequence:
 - **Card** — an individual content unit within a Set; Cards are stacked vertically
 - Card 0 of each multi-card Set is the **cover** (the corresponding slide content); tap / click / SPACE expands downward.
 
-**Version: 2.1.1**
+**Version: 2.1.2**
 
 ---
 
@@ -38,6 +35,7 @@ Two output types, produced in sequence:
 
 | Version | Date | Changes |
 |---|---|---|
+| **2.1.2** | 2026-05-02 | Trim `description` field to ≤1024 characters (was 1282). No functional change. |
 | **2.1.1** | 2026-05-02 | Orient toggle gains three modes: `auto` (default — detects `window.innerWidth >= window.innerHeight` at boot and on resize), `portrait`, `landscape`. Button cycles auto→portrait→landscape→auto; icon shows current effective orientation with an `A` badge in auto mode. |
 | **2.1.0** | 2026-05-02 | Three-phase workflow: Phase 1 input gathering → Phase 2 Slidedeck `{codename}_desk.html` → Phase 3 (optional) Card Box `{codename}_box.html`. Phase 3 card types: cover (= slide), glossary, concept, supplementary — user-specified per set. Bilingual toggle (EN/ZH-TW) documented in Phase 1. |
 | **2.0.1** | 2026-05-02 | Fix `.set` layout bug: `align-items:flex-start` (was `center`). Centering a multi-card `card-track` (CPR×100dvh) inside a 100dvh set pushed card 0 above the viewport, making cover cards invisible. |
