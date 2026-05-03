@@ -1,25 +1,28 @@
 ---
 name: mobile-slidedeck
 description: >
-  Three-phase skill for self-contained mobile web apps.
+  Four-phase skill for self-contained mobile web apps.
   Phase 1: gather codename, FA kit URL, language (mono/bilingual), orientation, optional focus.
   Phase 2: Slidedeck as {codename}_desk.html — horizontal swipe, dot bar, portrait or landscape.
   Phase 3 (optional): Card Box as {codename}_box.html — 2D nav (Box→Set→Card); each slide becomes a cover card; user adds glossary, concept, or supplementary cards per set.
+  Phase 4 (optional): JSONL data export as {codename}_box.jsonl — lossless serialization of Phase 3 for the Card Box Viewer; preserves Set→Card hierarchy with semantically-named palette.
   Orient default is auto (detects viewport ratio); cycles auto/portrait/landscape.
   Default language is English only. Ask user if bilingual is needed and what the second language is.
   Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
-  data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots.
+  data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots,
+  JSONL export, viewer-ready data, cardbox data file.
 ---
 
 # Mobile Slidedeck & Card Box Skill
 
 Converts structured content into polished self-contained mobile web apps. No external JS or CSS frameworks.
-Two output types, produced in sequence:
+Three output types, produced in sequence:
 
 | Output | File | Navigation | Structure |
 |---|---|---|---|
 | **Slidedeck** | `{codename}_desk.html` | Horizontal swipe · dot bar | N slides |
 | **Card Box** | `{codename}_box.html` | 2D: ←→ sets · ↑↓ cards | Box → Set → Card |
+| **Card Box Data** | `{codename}_box.jsonl` | — (consumed by Card Box Viewer) | One JSON object per line; line 1 = metadata, lines 2..N = cards |
 
 **Card Box hierarchy:**
 - **Box** — the whole app (one per file)
@@ -27,7 +30,7 @@ Two output types, produced in sequence:
 - **Card** — an individual content unit within a Set; Cards are stacked vertically
 - Card 0 of each multi-card Set is the **cover** (the corresponding slide content); tap / click / SPACE expands downward.
 
-**Version: 2.1.4**
+**Version: 2.2.0**
 
 ---
 
@@ -35,6 +38,7 @@ Two output types, produced in sequence:
 
 | Version | Date | Changes |
 |---|---|---|
+| **2.2.0** | 2026-05-03 | Phase 4 added — optional JSONL data export as `{codename}_box.jsonl` for the Card Box Viewer. Lossless serialisation of the Phase 3 Card Box: every Set→Card position, pattern, variant, and content payload round-trips. Metadata line carries `type:"meta"` plus `title`, `codename`, `version`, `language`, semantic `palette`, and optional `theme` overrides. Card lines carry `set`, `pattern`, `variant`, `tag`, `title`, `subline`, `note`, `content`. Palette uses semantic names (`planA`, `agoda`, `bronze`) instead of slot indices, so a re-skin only edits metadata. Bilingual decks emit one JSONL per language. Output specifications include validation checklist tied to the Card Box Validator. Output count updated from two to three. Frontmatter description and trigger phrases extended (under 1024-char limit). |
 | **2.1.4** | 2026-05-02 | Phase 3 radar fix — drop `align-self:stretch` on landscape `.card-face`. The 8-J Step 1 rule was authored for Phase 2 (`.slide` parent inside `.slides-area`, naturally bounded between topbar and dot bar). When v2.0.0 introduced Phase 3 (`.card` parent at 100dvh, topbar overlapping), the rule was carried over without re-validation; stretch caused `.card-face` to extend behind the topbar in landscape, hiding `.slide-tag`, `.slide-title`, and `.subline`. The natural `.card-face` sizing already accounts for `--top-h` via `--ah`, so no stretch is needed. Step 8-J now distinguishes Phase 2 (apply stretch via `.radar-slide` class) from Phase 3 (no stretch). Phase 3 design checklist inverts to forbid the rule; Phase 2 design checklist gains a symmetric entry. |
 | **2.1.3** | 2026-05-02 | Default language is English only. Phase 1 now asks user whether bilingual is needed and what the second language (L2) is. Bilingual rules generalised: L2 class is `.l2` / `lang-l2`; toggle label derived from L2 language; proper nouns stay in English with L2 translation in parentheses. |
 | **2.1.2** | 2026-05-02 | Trim `description` field to ≤1024 characters (was 1282). No functional change. |
@@ -55,13 +59,14 @@ Two output types, produced in sequence:
 
 ---
 
-## Three-Phase Workflow
+## Four-Phase Workflow
 
 | Phase | Action | Output |
 |---|---|---|
 | **1 — Input** | Gather codename, FA kit, language, optional focus | — |
 | **2 — Slidedeck** | Generate horizontal slide deck | `{codename}_desk.html` |
 | **3 — Card Box** *(optional)* | Convert slidedeck to 2D card box; user specifies extra cards per set | `{codename}_box.html` |
+| **4 — JSONL Export** *(optional)* | Serialise Phase 3 Card Box for the Card Box Viewer | `{codename}_box.jsonl` |
 
 ---
 
@@ -1510,3 +1515,387 @@ Landscape card faces are wider and shorter — prefer horizontal layouts (column
 - [ ] Radar (8-J): `.radar-wrap` column in portrait, row in landscape
 - [ ] Radar (8-J): `.radar-svg-box` portrait width-driven; landscape height-driven with `aspect-ratio` and `max-width:58%`
 - [ ] Radar (8-J): SVG has `preserveAspectRatio="xMidYMid meet"`; viewBox includes label padding beyond outer ring
+
+---
+
+## Phase 4 — JSONL Data Export (`{codename}_box.jsonl`) *(Optional)*
+
+Phase 4 serialises the just-built Phase 3 Card Box into a structured **JSONL** file that the **Card Box Viewer** can render losslessly. **Run only when the user explicitly asks** for the JSONL export, the data file, the cardbox-viewer-ready file, or "viewer-ready" output.
+
+**Source of truth:** the Phase 3 Card Box (`{codename}_box.html`). The serialisation must round-trip — the viewer's bucketing must reconstruct the exact same Set→Card hierarchy you produced in Phase 3.
+
+**Output:** `{codename}_box.jsonl` — UTF-8, one JSON object per line, no BOM, no trailing comma.
+
+| Step | Action |
+|---|---|
+| **P4-1** | Emit metadata as line 1 |
+| **P4-2** | Resolve `pattern` + `variant` for each card (Step 8 visualisation lookup) |
+| **P4-3** | Emit each Card as one line, in box reading order (Set 0 Card 0, Set 0 Card 1, …, Set N Card last) |
+| **P4-4** | Lift `content.*` payload by pattern schema |
+| **P4-5** | Build semantic `palette` and rewrite hex refs as palette keys |
+| **P4-6** | Emit optional `theme` overrides if Phase 3 customised CSS variables |
+| **P4-7** | Handle bilingual decks (one JSONL per language) |
+| **P4-8** | Validate against Card Box Viewer schema |
+
+---
+
+### Step P4-1 — Metadata line (line 1)
+
+The first line of the JSONL is a single JSON object marking the deck. **Do not pretty-print** — one line, no internal newlines.
+
+| Field | Required | Notes |
+|---|---|---|
+| `type` | Yes | Always `"meta"` |
+| `title` | Yes | Deck title (matches Phase 2 `<title>` and cover slide) |
+| `subtitle` | If present | From cover-slide subtitle |
+| `codename` | Yes | Same value as Phase 1; viewer uses for `localStorage` keying |
+| `version` | If present | e.g. `"v2.1.3"` |
+| `language` | Yes | `"en"` for monolingual; for bilingual decks see Step P4-7 |
+| `palette` | Yes | Semantic name → hex map; see Step P4-5 |
+| `theme` | Optional | `{"light":{"--accent":"#…"}, "dark":{…}}` — only if Phase 3 themed beyond defaults |
+
+Example:
+
+```json
+{"type":"meta","title":"Visualization Library","subtitle":"Twelve patterns","codename":"vizdemo","version":"v2.1.3","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
+```
+
+---
+
+### Step P4-2 — Pattern + variant resolution
+
+Map each Phase 3 card to the visualisation library from Step 8. Every card in a multi-card Set shares the same `pattern` (the cover's pattern); only `variant` differs.
+
+| Step-8 pattern | JSONL `pattern` | Documented variants |
+|---|---|---|
+| 8-A Table | `"table"` | `default` · `transposed` · `sorted` |
+| 8-B Bar Chart | `"bar"` | `default` · `grouped` · `ascending` |
+| 8-C Segment Bar | `"segment"` | `table` · `stacked` · `transposed` |
+| 8-D Yes/No Grid | `"yn-grid"` | `default` · `split` · `sorted` |
+| 8-E Pick List | `"pick"` | `list` · `grid` · `numbered` |
+| 8-F Tier Ladder | `"tier"` | `vertical` · `horizontal` · `descending` |
+| 8-G Stat Strip | `"stat"` | `strip` · `grid` · `vertical` |
+| 8-H KPI Insight | `"kpi"` | `strip` · `stacked` · `inline` |
+| 8-I Quote Callout | `"quote"` | `default` · `tight` · `severity-first` |
+| 8-J Radar Chart | `"radar"` | `filled` · `outline` · `side-by-side` |
+| 8-K Brand Card | `"brand"` | `grid` · `stacked` · `compact` |
+| 8-L Note Box | `"note"` | `default` · `numbered` · `grid` |
+| (cover card of Set 0) | `"cover"` | `default` · `stat-first` · `centered` |
+
+**Rules:**
+- **Card 0 of every Set** is the cover/default — omit `variant` (or use `"default"`).
+- **Cards 1+ are variants** — pick the documented variant string that best describes the layout. If no exact match, pick the closest; the viewer falls back to default rendering.
+- For Set 0 (the deck cover), `pattern:"cover"`. For all other sets, `pattern` is the visualisation pattern of Step 8.
+
+---
+
+### Step P4-3 — Card line shape
+
+| Field | Required | Notes |
+|---|---|---|
+| `set` | Yes | Set index from the box (`0`, `1`, … as integers preferred; strings accepted) |
+| `pattern` | Yes | One of the 13 keys from P4-2 |
+| `variant` | If not default | One of the documented variants for this pattern |
+| `tag` | If present | The card's top-left tag (e.g. `"Pattern A · Table"` or `"Variant 1 · Transposed"`) |
+| `title` | If present | The card's `<h2 class="slide-title">` text |
+| `subline` | If present | The card's `.subline` text |
+| `note` | If present | The card's `.note-block` footer text |
+| `content` | Yes for non-cover | Pattern-specific payload; see Step P4-4 |
+
+**Round-trip rule:** emit cards in box reading order (Set 0 Card 0 → Set 0 Card 1 → … → Set 0 Card last → Set 1 Card 0 → …). The viewer buckets by `set`, so contiguous integer set keys preserve original positions.
+
+---
+
+### Step P4-4 — Content schemas (per pattern)
+
+Lift the values directly out of the Phase 3 card markup into these shapes. Numbers stay as numbers; never wrap them as strings unless the box does so (e.g. `"∞"`, `"99.9"`).
+
+#### `cover`
+```json
+{
+  "description": "...",
+  "stats": [{"val":"12","lbl":"Patterns"}],
+  "footer": "..."
+}
+```
+
+#### `table`
+```json
+{
+  "headers": ["Feature","Free","Pro"],
+  "rows": [
+    ["Projects","3","∞"]
+  ]
+}
+```
+Cells can also be objects: `{"text":"...","class":"has|no|num"}` when the box used explicit styling classes. The viewer auto-classifies dashes (`-`, `−`, `–`, `—`) as `no` and other strings as `has`.
+
+#### `bar`
+```json
+{
+  "max": 100,
+  "items": [
+    {"label":"Python","value":41,"color":"planA"}
+  ]
+}
+```
+For the `grouped` variant, replace `items` with `groups` (each group's `items` follows the same shape as above):
+```json
+{
+  "max": 100,
+  "groups": [
+    {"label":"Above 20%","items":[]},
+    {"label":"Below 20%","items":[]}
+  ]
+}
+```
+
+#### `segment`
+```json
+{
+  "columns": ["Service","Plan A","Plan B"],
+  "rows": [
+    {"label":"Hotels","ratings":[
+      {"on":4,"total":5,"color":"planA"},
+      {"on":5,"total":5,"color":"planB"}
+    ]}
+  ]
+}
+```
+`ratings[].mid` defaults to 0 when omitted.
+
+#### `yn-grid`
+```json
+{
+  "columns": ["Plan A","Plan B"],
+  "rows": [
+    {"label":"SSO login","values":[true,true]}
+  ]
+}
+```
+Values: booleans (preferred) or `"v"` / `"−"`.
+
+#### `pick`
+```json
+{
+  "items": [
+    {"text":"Free breakfast at 4★+ properties"}
+  ],
+  "numbered": false,
+  "lastSpan": false
+}
+```
+Set `numbered:true` for the numeric-prefix variant. `lastSpan:true` only for `grid` variant when the item count is odd.
+
+#### `tier`
+```json
+{
+  "tiers": [
+    {"name":"Bronze","color":"bronze","desc":"Earn-only","req":"0 nights"}
+  ]
+}
+```
+`color` may be a built-in tier name (`bronze`, `silver`, `gold`, `platinum`, `diamond`, `black` — recognised by the viewer) or a palette key.
+
+#### `stat`
+```json
+{
+  "items": [{"val":"142","lbl":"Hotels"}],
+  "description": "..."
+}
+```
+
+#### `kpi`
+```json
+{
+  "items": [
+    {
+      "num":"87%",
+      "delta":"↑ 4pp vs last quarter",
+      "direction":"up",
+      "label":"Member satisfaction"
+    }
+  ]
+}
+```
+`direction`: `"up"` (green) or `"dn"` (red).
+
+#### `quote`
+```json
+{
+  "items": [
+    {"text":"...","attr":"— Q3 retention review","tone":"ok"}
+  ]
+}
+```
+`tone`: `"ok"` | `"warn"` | `"danger"`.
+
+#### `radar`
+```json
+{
+  "axes": ["Speed","Cost","Coverage","Support","Quality","Flexibility"],
+  "max": 5,
+  "series": [
+    {"name":"Plan A","values":[4,4,3,3,4,4],"total":"22/30","color":"planA"},
+    {"name":"Plan B","values":[3,4,5,4,1,2],"total":"21/30","color":"planB"}
+  ]
+}
+```
+`series[].values.length` **must equal** `axes.length`.
+
+#### `brand`
+```json
+{
+  "columns": 3,
+  "cards": [
+    {
+      "meta":"Platform",
+      "name":"Agoda",
+      "sub":"5 tiers · 24-mo",
+      "foot":"Top: Diamond\nValidity: 6 mo",
+      "accent":"agoda"
+    }
+  ]
+}
+```
+For the `compact` variant, use `subs` array instead of `sub`/`foot`:
+```json
+{"name":"Agoda","subs":["5 tiers","Diamond","24-mo · 6mo valid"],"accent":"agoda"}
+```
+
+#### `note`
+```json
+{
+  "notes": [
+    "All figures from Q3 2024 internal data..."
+  ],
+  "numbered": false,
+  "footer": "End of demo · 12 / 12 patterns"
+}
+```
+
+---
+
+### Step P4-5 — Palette extraction (semantic names)
+
+Walk every Phase 3 card and collect distinct hex values. Map each hex to a **semantic name derived from the content**, never a slot index.
+
+**Naming rules** (in priority order):
+
+1. **Tier names** — if the hex matches a built-in tier (`bronze` / `silver` / `gold` / `platinum` / `diamond` / `black`), use that name. The viewer recognises these as a fallback even without a metadata entry, but emitting the explicit entry is preferred for clarity.
+2. **Entity names** — when a colour belongs to a named entity in the deck (Plan A, Plan B, Agoda, Booking, Trip.com), use camelCase or kebab-case of the entity: `planA`, `planB`, `agoda`, `booking`, `tripcom`.
+3. **Functional names** — for severity/state colours (`ok`, `warn`, `danger`) use the role name; for accent/highlight, use `accent` / `highlight`.
+4. **Last resort** — single-letter slots (`a`, `b`, `c`) only if the entity is genuinely unnamed (e.g. abstract demo data).
+
+**Example extraction** (from a real deck):
+
+```
+Box hex set:        Entity association:                   Palette key:
+  #0A2766           Plan A series                         planA
+  #B83030           Plan B series                         planB
+  #1E7A3C           Trip.com brand card                   tripcom
+  #A06830           Bronze tier badge                     bronze (built-in fallback)
+  #C9A84C           Gold tier badge                       gold   (built-in fallback)
+```
+
+Resulting metadata fragment:
+```json
+"palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C","bronze":"#A06830","gold":"#C9A84C"}
+```
+
+**Critical:** inside `content.*.color` and `content.*.accent`, always emit the **palette key**, never the raw hex. This way a future re-skin only edits metadata.
+
+✓ Right: `{"label":"Python","value":41,"color":"planA"}`
+✗ Wrong: `{"label":"Python","value":41,"color":"#0A2766"}`
+
+---
+
+### Step P4-6 — Theme overrides (optional)
+
+If Phase 3 customised CSS variables (changed `--accent`, `--ok`, etc. beyond the defaults defined in Phase 3 Step 3), serialise the deltas into `meta.theme`:
+
+```json
+"theme":{
+  "light":{"--accent":"#1E7A3C"},
+  "dark":{"--accent":"#4DC870"}
+}
+```
+
+Only emit variables that **differ from the viewer's defaults**. Omit `meta.theme` entirely when Phase 3 used default CSS variables.
+
+---
+
+### Step P4-7 — Bilingual decks
+
+The Card Box Viewer renders one language at a time — it does not understand `{en, l2}` objects. For bilingual decks built in Phase 3:
+
+- **Default**: serialise the **L1 (English)** strings only. Set `"language":"en"` in metadata.
+- **L2 only**: if the user wants the L2 file, serialise the L2 strings and set `"language"` to the BCP-47 code (e.g. `"zh-TW"`, `"ja"`, `"es"`).
+- **Both**: emit two JSONL files — `{codename}_box.en.jsonl` and `{codename}_box.{l2}.jsonl`. Each is a complete deck on its own.
+
+Do not embed `{en, l2}` objects inside `content.*` — the viewer treats every string as opaque text and would render the JSON shape verbatim.
+
+---
+
+### Step P4-8 — Validation
+
+Before delivering the file, verify it would pass the **Card Box Validator**. Cross-check against this list:
+
+- [ ] Line 1 is a JSON object with `type:"meta"` (or no `pattern` field — the validator is lenient on the marker but emits a warning)
+- [ ] Metadata has `title` and `codename`
+- [ ] Every line parses as JSON; no trailing comma, no `//` comments, no extra whitespace between lines
+- [ ] Every card has a `set` (number or string) and `pattern` (one of the 13 keys)
+- [ ] Every `pattern` resolves to a known variant or the default
+- [ ] Every `color` / `accent` reference resolves: hex, palette key, tier name, or `var(...)`
+- [ ] Required content keys present per pattern:
+  - `table` → `headers`, `rows`
+  - `bar` → `items` or `groups`
+  - `segment` → `columns`/`headers`, `rows`
+  - `yn-grid` → `columns`, `rows`
+  - `pick` → `items`
+  - `tier` → `tiers`
+  - `stat` → `items` or `stats`
+  - `kpi` → `items`
+  - `quote` → `items`
+  - `radar` → `axes`, `series`
+  - `brand` → `cards`
+  - `note` → `notes`
+- [ ] Radar `series[].values.length === axes.length`; `max` is a positive number
+- [ ] KPI `direction` ∈ `{up, dn}`; quote `tone` ∈ `{ok, warn, danger}`
+- [ ] Set indices form a contiguous sequence starting at 0 (preferred for round-trip ordering)
+- [ ] Card 0 of each Set has no `variant` (or `variant:"default"`)
+- [ ] No raw hex inside `content.*.color` / `content.*.accent` — palette keys only
+
+---
+
+### Step P4-9 — File naming
+
+Follow the codename convention:
+
+| Phase | File |
+|---|---|
+| 2 | `{codename}_desk.html` |
+| 3 | `{codename}_box.html` |
+| 4 (monolingual) | `{codename}_box.jsonl` |
+| 4 (bilingual, both languages) | `{codename}_box.en.jsonl` and `{codename}_box.{l2}.jsonl` |
+
+UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of-file is optional (both forms accepted by the viewer).
+
+---
+
+## Phase 4 design checklist
+
+- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`
+- [ ] Cards in box reading order: Set 0 Card 0 → Set 0 Card 1 → … → Set N Card last
+- [ ] Card 0 of each Set has no `variant` field (it is the cover/default)
+- [ ] Pattern shared across all cards in a Set; only `variant` differs
+- [ ] All hex colours in `content.*.color` and `content.*.accent` rewritten as palette keys
+- [ ] Palette names are semantic (`planA`, `agoda`, `bronze`) — never slot indices unless entity is unnamed
+- [ ] Variants chosen from the documented list per pattern (see P4-2) or omitted for default
+- [ ] Numeric values stay numeric (e.g. `"value":41`); display strings stay strings (e.g. `"display":"41%"`)
+- [ ] `series[].values.length === axes.length` for every radar card
+- [ ] Bilingual → one language per file; `meta.language` matches the language used; `{en, l2}` objects never embedded in content
+- [ ] `meta.theme` emitted only if Phase 3 customised CSS variables beyond defaults
+- [ ] One self-contained `.jsonl` file
+- [ ] UTF-8 encoding, no BOM, no trailing comma, no comments
+- [ ] Validates against the Card Box Validator with zero errors
