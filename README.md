@@ -38,6 +38,7 @@ Three output types, produced in sequence:
 
 | Version | Date | Changes |
 |---|---|---|
+| **2.2.1** | 2026-05-03 | Phase 4 inline-HTML guard — content text fields permit only the safe inline subset `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>`. `<span style="...">` (and `<span>` in any form) is now forbidden because the Card Box Viewer renders JSONL strings without parsing arbitrary HTML, so coloured spans surface as literal text. Phase 3 → Phase 4 lift: replace `<span style="color:var(--yes);">+10%</span>` with plain `+10%` (sign already conveys polarity) or wrap the value in `<strong>` if emphasis is wanted. Step P4-4 prose note added; Phase 4 design checklist bullet added. |
 | **2.2.0** | 2026-05-03 | Phase 4 added — optional JSONL data export as `{codename}_box.jsonl` for the Card Box Viewer. Lossless serialisation of the Phase 3 Card Box: every Set→Card position, pattern, variant, and content payload round-trips. Metadata line carries `type:"meta"` plus `title`, `codename`, `version`, `language`, semantic `palette`, and optional `theme` overrides. Card lines carry `set`, `pattern`, `variant`, `tag`, `title`, `subline`, `note`, `content`. Palette uses semantic names (`planA`, `agoda`, `bronze`) instead of slot indices, so a re-skin only edits metadata. Bilingual decks emit one JSONL per language. Output specifications include validation checklist tied to the Card Box Validator. Output count updated from two to three. Frontmatter description and trigger phrases extended (under 1024-char limit). |
 | **2.1.4** | 2026-05-02 | Phase 3 radar fix — drop `align-self:stretch` on landscape `.card-face`. The 8-J Step 1 rule was authored for Phase 2 (`.slide` parent inside `.slides-area`, naturally bounded between topbar and dot bar). When v2.0.0 introduced Phase 3 (`.card` parent at 100dvh, topbar overlapping), the rule was carried over without re-validation; stretch caused `.card-face` to extend behind the topbar in landscape, hiding `.slide-tag`, `.slide-title`, and `.subline`. The natural `.card-face` sizing already accounts for `--top-h` via `--ah`, so no stretch is needed. Step 8-J now distinguishes Phase 2 (apply stretch via `.radar-slide` class) from Phase 3 (no stretch). Phase 3 design checklist inverts to forbid the rule; Phase 2 design checklist gains a symmetric entry. |
 | **2.1.3** | 2026-05-02 | Default language is English only. Phase 1 now asks user whether bilingual is needed and what the second language (L2) is. Bilingual rules generalised: L2 class is `.l2` / `lang-l2`; toggle label derived from L2 language; proper nouns stay in English with L2 translation in parentheses. |
@@ -1610,6 +1611,8 @@ Map each Phase 3 card to the visualisation library from Step 8. Every card in a 
 
 Lift the values directly out of the Phase 3 card markup into these shapes. Numbers stay as numbers; never wrap them as strings unless the box does so (e.g. `"∞"`, `"99.9"`).
 
+**Inline HTML in text fields.** Strings inside `content.*` fields (`text`, `description`, `notes`, `subline`, `note`, `foot`, `sub`, etc.) accept a small safe subset of inline tags only: `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>`. **Do not emit `<span>`** in any form, including `<span style="color:var(--yes);">`. The Card Box Viewer renders these strings without applying CSS variables from a stylesheet, so coloured spans surface as literal text rather than coloured glyphs. When lifting a Phase 3 card that used colour-coded spans (e.g. green `+51%` for positive returns), drop the span — the leading sign already conveys polarity — or wrap the value in `<strong>` if emphasis is wanted. Hex/colour intent for non-text elements belongs in `accent` / `color` palette keys, not inline styles.
+
 #### `cover`
 ```json
 {
@@ -1896,6 +1899,7 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 - [ ] `series[].values.length === axes.length` for every radar card
 - [ ] Bilingual → one language per file; `meta.language` matches the language used; `{en, l2}` objects never embedded in content
 - [ ] `meta.theme` emitted only if Phase 3 customised CSS variables beyond defaults
+- [ ] No `<span>` tags in any `content.*` text field; allowed inline subset is `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>` only
 - [ ] One self-contained `.jsonl` file
 - [ ] UTF-8 encoding, no BOM, no trailing comma, no comments
 - [ ] Validates against the Card Box Validator with zero errors
