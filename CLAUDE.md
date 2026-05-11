@@ -43,7 +43,7 @@ JSONL set N   →  Viewer set N+1
 - **Jump URL**: `https://card.trth.nl/?jump={viewer-set}_{card}` — uses viewer indices (Cover=0, Outline=1, Content=2+)
 - **Save as .cards**: viewer can export live deck state with baked checklist statuses
 
-## Visualization Library (Step 8 / P2-2)
+## Visualization Library (Step P2-2)
 
 14 patterns available as JSONL content objects:
 
@@ -70,13 +70,14 @@ Generated `.cards` output must use **one JSON object per line** with **no extra 
 
 ## Updating the Skill Spec
 
-When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **3.0.0** (2026-05-12).
+When modifying `README.md` (the skill spec), bump the version string in `README.md` and add a changelog row to `CHANGELOG.md`. Current version: **3.0.0** (2026-05-12).
 
 ### Version release workflow
 
-1. Edit `README.md`: bump version string and add changelog row
-2. `git add README.md`
-3. `git commit -S -m "<message>"` — GPG-signed commit
-4. `git push`
-5. `git tag -s vX.Y.Z -m "vX.Y.Z: <short description>"` — GPG-signed tag
-6. `git push origin vX.Y.Z`
+1. Edit `README.md`: bump version string
+2. Edit `CHANGELOG.md`: add changelog row at the top of the table
+3. `git add README.md CHANGELOG.md`
+4. `git commit -S -m "<message>"` — GPG-signed commit
+5. `git push`
+6. `git tag -s vX.Y.Z -m "vX.Y.Z: <short description>"` — GPG-signed tag
+7. `git push origin vX.Y.Z`
