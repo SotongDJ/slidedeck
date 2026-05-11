@@ -23,7 +23,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.0.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.0.1**
 
 ---
 
@@ -140,29 +140,29 @@ Example:
 
 Map each card to the visualisation library. Every card in a multi-card Set shares the same `pattern` (the cover's pattern); only `variant` differs.
 
-| Step-8 pattern | JSONL `pattern` | Documented variants |
+| Visualization type | JSONL `pattern` | Documented variants |
 |---|---|---|
-| 8-A Table | `"table"` | `default` · `transposed` · `sorted` |
-| 8-B Bar Chart | `"bar"` | `default` · `grouped` · `ascending` |
-| 8-C Segment Bar | `"segment"` | `table` · `stacked` · `transposed` |
-| 8-D Yes/No Grid | `"yn-grid"` | `default` · `split` · `sorted` |
-| 8-E Pick List | `"pick"` | `list` · `grid` · `numbered` |
-| 8-F Tier Ladder | `"tier"` | `vertical` · `horizontal` · `descending` |
-| 8-G Stat Strip | `"stat"` | `strip` · `grid` · `vertical` |
-| 8-H KPI Insight | `"kpi"` | `strip` · `stacked` · `inline` |
-| 8-I Quote Callout | `"quote"` | `default` · `tight` · `severity-first` |
-| 8-J Radar Chart | `"radar"` | `filled` · `outline` · `side-by-side` |
-| 8-K Brand Card | `"brand"` | `grid` · `stacked` · `compact` |
-| 8-L Note Box | `"note"` | `default` · `numbered` · `grid` |
-| (cover card of Set 0) | `"cover"` | `default` · `stat-first` · `centered` |
-| (checklist) | `"checklist"` | `default` · `numbered` · `grid` |
+| Table | `"table"` | `default` · `transposed` · `sorted` |
+| Bar chart | `"bar"` | `default` · `grouped` · `ascending` |
+| Segment bar | `"segment"` | `table` · `stacked` · `transposed` |
+| Yes/No grid | `"yn-grid"` | `default` · `split` · `sorted` |
+| Pick list | `"pick"` | `list` · `grid` · `numbered` |
+| Tier ladder | `"tier"` | `vertical` · `horizontal` · `descending` |
+| Stat strip | `"stat"` | `strip` · `grid` · `vertical` |
+| KPI insight | `"kpi"` | `strip` · `stacked` · `inline` |
+| Quote callout | `"quote"` | `default` · `tight` · `severity-first` |
+| Radar chart | `"radar"` | `filled` · `outline` · `side-by-side` |
+| Brand card | `"brand"` | `grid` · `stacked` · `compact` |
+| Note box | `"note"` | `default` · `numbered` · `grid` |
+| Cover card (Set 0) | `"cover"` | `default` · `stat-first` · `centered` |
+| Checklist | `"checklist"` | `default` · `numbered` · `grid` |
 
 > **`"pattern":"toc"` is prohibited.** The viewer silently skips any card with that pattern — the Outline is auto-generated on every load and is never stored in the file.
 
 **Rules:**
 - **Card 0 of every Set** is the cover/default — omit `variant` (or use `"default"`).
 - **Cards 1+ are variants** — pick the documented variant string that best describes the layout. If no exact match, pick the closest; the viewer falls back to default rendering.
-- For Set 0 (the deck cover), `pattern:"cover"`. For all other sets, `pattern` is the visualisation pattern of Step 8.
+- For Set 0 (the deck cover), `pattern:"cover"`. For all other sets, `pattern` is one of the visualization types from the table above.
 
 ---
 
@@ -174,7 +174,7 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | `pattern` | Yes | One of the 14 keys from P2-2 |
 | `variant` | If not default | One of the documented variants for this pattern |
 | `tag` | If present | The card's top-left tag (e.g. `"Pattern A · Table"` or `"Variant 1 · Transposed"`) |
-| `title` | If present | The card's `<h2 class="slide-title">` text |
+| `title` | If present | The card's title text |
 | `subline` | If present | The card's `.subline` text |
 | `note` | If present | The card's `.note-block` footer text |
 | `content` | Yes for non-cover | Pattern-specific payload; see Step P2-4 |
