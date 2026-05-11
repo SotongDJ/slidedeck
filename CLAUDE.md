@@ -4,75 +4,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repository Is
 
-This is a **Claude Code skill repository**. The `README.md` is the skill specification (effectively a `SKILL.md`) — an 887-line step-by-step template that instructs Claude how to generate self-contained, single-file mobile slide deck web apps.
+This is a **Claude Code skill repository**. The `README.md` is the skill specification (effectively a `SKILL.md`) — a step-by-step template that instructs Claude how to generate `.cards` JSONL deck files for the Card Box Viewer (card.trth.nl).
 
-There is no build system, no npm packages, no compilation step. The output of the skill is a single `.html` file with all HTML, CSS, and vanilla JavaScript inlined.
+There is no build system, no npm packages, no compilation step. The output of the skill is a single `.cards` file — plain UTF-8 JSONL, one JSON object per line. No HTML, CSS, or JS.
+
+> **HTML output removed in v3.0.0.** For `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
 ## Skill Invocation
 
-The skill is triggered by user phrases like "make me a slide deck about X" or "create a slidedeck for Y". It collects three inputs:
-- **Codename** — a short identifier for the deck (used in localStorage keys and the title)
-- **Font Awesome kit URL** — for icons in the topbar
-- **Orientation** — portrait (9:16, default) or landscape (16:9), inferred from context if not stated
+The skill is triggered by user phrases like "make me a slide deck about X" or "create a cardbox for Y". It collects:
+- **Codename** — short identifier used in the output filename
+- **Content / topic** — the material to present
+- **Language** — default English; ask if bilingual is needed and what the second language is
+- **Orientation hint** — portrait (default) or landscape; affects layout choices in content schemas
 
 ## Generated Output Architecture
 
-The skill produces a single HTML file structured as:
+The skill produces a `.cards` file with this deck structure as loaded by the Cardbox Viewer:
 
 ```
-<html data-theme="light" data-orient="portrait">
-  <body>
-    <div class="deck">
-      <div class="deck-top">     <!-- topbar: page counter | font size | controls -->
-      <div class="slides-area">
-        <div class="slides-track">   <!-- 400% wide, CSS transform-based sliding -->
-          <div class="slide">...</div>
-        </div>
-      </div>
-      <div class="deck-bot">     <!-- prev | dot indicators | next -->
-    </div>
-  </body>
-</html>
+JSONL set 0   →  Viewer set 0  —  Cover    (single "cover" card)
+(auto)        →  Viewer set 1  —  Outline  (viewer-generated, never in file)
+JSONL set 1   →  Viewer set 2  —  First content set
+JSONL set N   →  Viewer set N+1
 ```
 
-**Key implementation details:**
-- Navigation uses CSS `transform: translateX()` on `.slides-track`, not JavaScript scroll
-- State (page, font size, theme, orientation) persists via `localStorage` + URL query params, with boot priority: URL params → localStorage → hardcoded defaults
-- Touch swipe threshold: 36px; keyboard: arrow keys
-- Font size range: 3–69px in steps of 3; portrait default 21px, landscape default 18px
-- Theme cycles: light → dark → system (respects `prefers-color-scheme`)
-- Print/PDF: `slidesToPrintPDF()` opens a new window with one page per slide for browser print
+**Key authoring rules:**
+- Set 0: single `"pattern":"cover"` card only
+- Never emit `"pattern":"toc"` — viewer generates the Outline itself
+- Content sets start at `"set":1` in JSONL
+- Each content set's first card should be `"pattern":"cover"` with `tag`, `title`, `subline`
+- All output is compact single-line JSON (no pretty-printing, no comments)
 
-## CSS Theme System
+## Cardbox Viewer Features (v2.0.0)
 
-All colors are CSS custom properties on `:root` with two sets (light/dark). Key semantic variables: `--bg`, `--text`, `--border`, `--accent`, `--ok` (green), `--warn` (amber), `--danger` (red), plus `--*-bg` tinted backgrounds for each semantic color. A `[data-theme="system"]` block uses `@media (prefers-color-scheme: dark)`.
+- **Auto-Outline**: viewer inserts Outline at viewer set 1 automatically
+- **Checklist** (`"pattern":"checklist"`): three-state items (`empty`/`check`/`strikethrough`), `localStorage` persistence, stable `id` fields required
+- **Jump URL**: `https://card.trth.nl/?jump={viewer-set}_{card}` — uses viewer indices (Cover=0, Outline=1, Content=2+)
+- **Save as .cards**: viewer can export live deck state with baked checklist statuses
 
-## Visualization Library (Step 8 of the skill)
+## Visualization Library (Step 8 / P2-2)
 
-11 reusable HTML/CSS patterns defined in the skill spec:
+14 patterns available as JSONL content objects:
 
-| ID | Pattern | Use case |
-|----|---------|----------|
-| 8-A | Table | Feature comparison matrix |
-| 8-B | Bar chart | Single-series horizontal bars |
-| 8-C | Segment bar | Multi-entity ratings |
-| 8-D | Yes/No grid | Binary feature matrix |
-| 8-E | Pick list | Ordered benefits |
-| 8-F | Tier ladder | Loyalty/subscription tiers |
-| 8-G | Stat strip | 2–4 KPI numbers |
-| 8-H | KPI Insight card | One dramatic headline number |
-| 8-I | Quote callout | Reviews or warnings |
-| 8-J | SVG Radar chart | 6-axis hexagon (overflow-safe, SVG viewBox) |
-| 8-K | Brand accent card | Platform/product overview |
-| 8-L | Caption/note box | Footnotes |
+| Pattern | Use case |
+|---|---|
+| `cover` | Deck cover and content-set cover cards |
+| `table` | Feature comparison matrix |
+| `bar` | Single-series horizontal bars |
+| `segment` | Multi-entity coverage ratings |
+| `yn-grid` | Binary feature matrix |
+| `pick` | Ordered benefit lists |
+| `tier` | Loyalty/subscription tiers |
+| `stat` | 2–4 KPI numbers |
+| `kpi` | One dramatic headline number per entity |
+| `quote` | Reviews or warnings (ok/warn/danger) |
+| `radar` | Multi-axis radar chart |
+| `brand` | Platform/product overview cards |
+| `note` | Footnotes / caption box |
+| `checklist` | Interactive three-state checklist |
 
-## Output Formatting Rules (Step 0.5)
+## Output Formatting Rules
 
-Generated HTML must use **zero indentation** and **no comments**. These are intentional constraints to keep output compact — do not add indentation or inline comments when generating or editing slide HTML files.
+Generated `.cards` output must use **one JSON object per line** with **no extra whitespace** and **no comments**. Code blocks in the skill spec are for readability only — strip all formatting in actual output.
 
 ## Updating the Skill Spec
 
-When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **2.1.3** (2026-05-02).
+When modifying `README.md` (the skill spec), update the version number and changelog at the top of the file. Current version: **3.0.0** (2026-05-12).
 
 ### Version release workflow
 
