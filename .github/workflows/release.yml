@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -16,19 +14,29 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-tags: true
+
+      - name: Detect version tag on HEAD
+        id: tag
+        run: |
+          TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]' | sort -V | tail -1)
+          echo "name=$TAG" >> $GITHUB_OUTPUT
+          echo "found=$([ -n "$TAG" ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
       - name: Build skill zip
-        if: github.ref_type == 'tag'
+        if: steps.tag.outputs.found == 'true'
         run: |
           mkdir -p _tmp
           cp README.md _tmp/SKILL.md
           cd _tmp
-          zip "mobile-slidedeck-${{ github.ref_name }}.skill" SKILL.md
+          zip "mobile-slidedeck-${{ steps.tag.outputs.name }}.skill" SKILL.md
 
       - name: Publish release
-        if: github.ref_type == 'tag'
+        if: steps.tag.outputs.found == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          name: "Slidedeck Skill ${{ github.ref_name }}"
-          files: _tmp/mobile-slidedeck-${{ github.ref_name }}.skill
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: "Slidedeck Skill ${{ steps.tag.outputs.name }}"
+          files: _tmp/mobile-slidedeck-${{ steps.tag.outputs.name }}.skill
           generate_release_notes: true
