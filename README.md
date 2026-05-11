@@ -16,6 +16,9 @@ description: >
 
 # Mobile Slidedeck & Card Box Skill
 
+[![Pipeline Status](https://gitlab.com/djtratoh/card.trth.nl/badges/main/pipeline.svg)](https://gitlab.com/djtratoh/card.trth.nl/-/commits/main)
+[![Release Skill](https://github.com/SotongDJ/slidedeck/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/SotongDJ/slidedeck/actions/workflows/release.yml)
+
 Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or JS output.
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
@@ -24,7 +27,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 ---
 
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
+See [CHANGELOG](https://github.com/SotongDJ/slidedeck/blob/main/CHANGELOG) for full version history.
 
 ---
 

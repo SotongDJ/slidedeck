@@ -70,13 +70,13 @@ Generated `.cards` output must use **one JSON object per line** with **no extra 
 
 ## Updating the Skill Spec
 
-When modifying `README.md` (the skill spec), bump the version string in `README.md` and add a changelog row to `CHANGELOG.md`. Current version: **3.0.0** (2026-05-12).
+When modifying `README.md` (the skill spec), bump the version string in `README.md` and add a changelog row to `CHANGELOG`. Current version: **3.0.0** (2026-05-12).
 
 ### Version release workflow
 
 1. Edit `README.md`: bump version string
-2. Edit `CHANGELOG.md`: add changelog row at the top of the table
-3. `git add README.md CHANGELOG.md`
+2. Edit `CHANGELOG`: add changelog row at the top of the table
+3. `git add README.md CHANGELOG`
 4. `git commit -S -m "<message>"` — GPG-signed commit
 5. `git push`
 6. `git tag -s vX.Y.Z -m "vX.Y.Z: <short description>"` — GPG-signed tag

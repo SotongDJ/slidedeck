@@ -1,0 +1,27 @@
+# Changelog
+
+## mobile-slidedeck skill
+
+| Version | Date | Changes |
+|---|---|---|
+| **3.0.0** | 2026-05-12 | Phase 4 updated to Cardbox Viewer v2.0.0: viewer auto-inserts Outline at viewer set 1 (never authored); `"pattern":"toc"` prohibited; new `checklist` pattern (three-state items `empty`/`check`/`strikethrough`, stable `id` fields, `localStorage` persistence, variants `default`/`numbered`/`grid`); Jump URL `?jump={viewer-set}_{card}` documented (Cover=0, Outline=1, Content=2+); P2-2 updated to 14 patterns; checklist content schema added to P2-4; P2-8 validation extended. Both HTML generation methods removed: Phase 2 Slidedeck `.html` and Phase 3 Card Box `.html` are no longer produced by this skill; `.cards` JSONL (Phase 4) is the only output format. |
+| **2.2.2** | 2026-05-03 | Phase 4 output extension renamed from `.jsonl` to `.cards` — content and structure (JSONL format, one JSON object per line) are unchanged; only the file extension differs. All output naming references updated: monolingual `{codename}_box.cards`, bilingual `{codename}_box.en.cards` / `{codename}_box.{l2}.cards`. |
+| **2.2.1** | 2026-05-03 | Phase 4 inline-HTML guard — content text fields permit only the safe inline subset `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>`. `<span style="...">` (and `<span>` in any form) is now forbidden because the Card Box Viewer renders JSONL strings without parsing arbitrary HTML, so coloured spans surface as literal text. Phase 3 → Phase 4 lift: replace `<span style="color:var(--yes);">+10%</span>` with plain `+10%` (sign already conveys polarity) or wrap the value in `<strong>` if emphasis is wanted. |
+| **2.2.0** | 2026-05-03 | Phase 4 added — optional JSONL data export as `{codename}_box.jsonl` for the Card Box Viewer. Lossless serialisation of the Phase 3 Card Box: every Set→Card position, pattern, variant, and content payload round-trips. Metadata line carries `type:"meta"` plus `title`, `codename`, `version`, `language`, semantic `palette`, and optional `theme` overrides. Card lines carry `set`, `pattern`, `variant`, `tag`, `title`, `subline`, `note`, `content`. Palette uses semantic names (`planA`, `agoda`, `bronze`) instead of slot indices, so a re-skin only edits metadata. Bilingual decks emit one JSONL per language. |
+| **2.1.4** | 2026-05-02 | Phase 3 radar fix — drop `align-self:stretch` on landscape `.card-face`. The natural `.card-face` sizing already accounts for `--top-h` via `--ah`, so no stretch is needed. Step 8-J now distinguishes Phase 2 (apply stretch via `.radar-slide` class) from Phase 3 (no stretch). |
+| **2.1.3** | 2026-05-02 | Default language is English only. Phase 1 now asks user whether bilingual is needed and what the second language (L2) is. Bilingual rules generalised: L2 class is `.l2` / `lang-l2`; toggle label derived from L2 language; proper nouns stay in English with L2 translation in parentheses. |
+| **2.1.2** | 2026-05-02 | Trim `description` field to ≤1024 characters (was 1282). No functional change. |
+| **2.1.1** | 2026-05-02 | Orient toggle gains three modes: `auto` (default), `portrait`, `landscape`. Button cycles auto→portrait→landscape→auto; icon shows current effective orientation with an `A` badge in auto mode. |
+| **2.1.0** | 2026-05-02 | Three-phase workflow: Phase 1 input gathering → Phase 2 Slidedeck `{codename}_desk.html` → Phase 3 (optional) Card Box `{codename}_box.html`. Phase 3 card types: cover, glossary, concept, supplementary. Bilingual toggle (EN/ZH-TW) documented in Phase 1. |
+| **2.0.1** | 2026-05-02 | Fix `.set` layout bug: `align-items:flex-start` (was `center`). Centering a multi-card `card-track` pushed card 0 above the viewport, making cover cards invisible. |
+| **2.0.0** | 2026-05-01 | Layout replaced: slide deck → Card Box. Three-level hierarchy (Box → Set → Card). 2D navigation: horizontal between Sets (←→), vertical between Cards (↑↓). Cover card expand/collapse on tap/click/SPACE. Directional nav buttons (4 edges) replace bottom dot bar. |
+| **1.7.1** | 2026-04-22 | Radar chart overflow-safe layout; align-self:stretch + margin:0 on landscape slide; height-driven sizing in landscape; preserveAspectRatio; viewBox formula; 6-axis pre-computed vectors |
+| **1.7.0** | 2026-04-22 | Visualization library: SVG radar chart, segment bar, stat strip, KPI insight card, quote callout, tier ladder, brand accent card; semantic CSS vars |
+| **1.6.0** | 2026-04-11 | Print/PDF button; slidesToPrintPDF(); orientation-aware |
+| **1.5.0** | 2026-04-11 | Codename + FA icons; localStorage + URL query string persistence; Share + Reset |
+| **1.4.1** | 2026-04-10 | Restored Step 0 heading; removed stale body margin |
+| **1.4.0** | 2026-04-10 | Deck always centred; safe-area insets; viewport-fit=cover; 100dvh |
+| **1.3.0** | 2026-04-10 | Output HTML/CSS/JS: zero indentation, no comments |
+| **1.2.0** | 2026-04-10 | Font size buttons centred; range 3–69px step 3; portrait default 21px, landscape 18px |
+| **1.1.0** | 2026-04-10 | Orientation toggle; runtime data-orient attribute |
+| **1.0.0** | 2026-04-10 | Initial release |
