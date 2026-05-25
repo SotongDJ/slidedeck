@@ -9,8 +9,12 @@ description: >
   Orientation hint (portrait default, landscape for widescreen/16:9) guides content density.
   Default language is English only. Ask user if bilingual is needed and what the second language is.
   For HTML output (Slidedeck .html or Card Box .html), use v2.x of this skill instead.
+  Format v2 adds 17 SVG data visualisation plots: line, area, pie, donut, scatter, histogram,
+  stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
+  Max 10 data points per figure; downsample larger datasets via quartile method.
   Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
   data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots,
+  line chart, pie chart, scatter plot, histogram, heatmap, gantt chart, data visualisation,
   JSONL export, viewer-ready data, cardbox data file, .cards file, card box viewer.
 ---
 
@@ -23,7 +27,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.0.1**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.1.0**
 
 ---
 
@@ -120,6 +124,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 | Field | Required | Notes |
 |---|---|---|
 | `type` | Yes | Always `"meta"` |
+| `v` | Recommended | Format version integer. `2` for decks using plot patterns; omit or `1` for the original 14-pattern format |
 | `title` | Yes | Deck title (matches the cover card title) |
 | `subtitle` | If present | From cover-slide subtitle |
 | `codename` | Yes | Same value as Phase 1; viewer uses for `localStorage` keying |
@@ -131,7 +136,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 Example:
 
 ```json
-{"type":"meta","title":"Visualization Library","subtitle":"Twelve patterns","codename":"vizdemo","version":"v2.1.3","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
+{"type":"meta","v":2,"title":"Visualization Library","subtitle":"31 patterns","codename":"vizdemo","version":"v3.1.0","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
 ```
 
 ---
@@ -156,6 +161,24 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | Note box | `"note"` | `default` · `numbered` · `grid` |
 | Cover card (Set 0) | `"cover"` | `default` · `stat-first` · `centered` |
 | Checklist | `"checklist"` | `default` · `numbered` · `grid` |
+| **Format v2 — data visualisation plots (SVG, `"v":2` in metadata)** |||
+| Line chart | `"line"` | `default` · `smooth` · `stepped` |
+| Area chart | `"area"` | `default` · `stacked` · `normalized` |
+| Pie chart | `"pie"` | `default` · `exploded` · `half` |
+| Donut chart | `"donut"` | `default` · `thin` · `half` |
+| Scatter plot | `"scatter"` | `default` · `labeled` · `trend` |
+| Histogram | `"histogram"` | `default` · `cumulative` · `density` |
+| Stacked bar chart | `"stacked-bar"` | `default` · `normalized` · `horizontal` |
+| Box plot | `"boxplot"` | `default` · `horizontal` · `notched` |
+| Heatmap | `"heatmap"` | `default` · `annotated` · `clustered` |
+| Waterfall chart | `"waterfall"` | `default` · `horizontal` · `colored` |
+| Funnel chart | `"funnel"` | `default` · `horizontal` · `proportional` |
+| Candlestick chart | `"candlestick"` | `default` · `hollow` · `volume` |
+| Bubble chart | `"bubble"` | `default` · `labeled` · `packed` |
+| Violin plot | `"violin"` | `default` · `with-box` · `split` |
+| Gantt chart | `"gantt"` | `default` · `grouped` · `minimal` |
+| Treemap | `"treemap"` | `default` · `flat` · `labeled` |
+| Sankey diagram | `"sankey"` | `default` · `vertical` · `colored` |
 
 > **`"pattern":"toc"` is prohibited.** The viewer silently skips any card with that pattern — the Outline is auto-generated on every load and is never stored in the file.
 
@@ -372,6 +395,250 @@ File-baked `status` values load only when no `localStorage` record already exist
 
 ---
 
+### Step P2-4b — Data density rule (all patterns)
+
+Every figure shows **at most 10 data points**. When the source dataset has more than 10 points, downsample to **9 representative points** using quartiles:
+
+| Position | Percentile |
+|---|---|
+| 1 | Q0 (min, 0%) |
+| 2 | P12.5 |
+| 3 | Q1 (25%) |
+| 4 | P37.5 |
+| 5 | Q2 (median, 50%) |
+| 6 | P62.5 |
+| 7 | Q3 (75%) |
+| 8 | P87.5 |
+| 9 | Q4 (max, 100%) |
+
+This applies to all data arrays: `series[].values`, `points[]`, `bins[]`, `slices[]`, `stages[]`, `candles[]`, `tasks[]`, `groups[]`, `items[]`, `tiers[]`, `rows[]`, etc. — across **both** format-v1 and format-v2 patterns.
+
+---
+
+### Step P2-4c — Format v2 plot content schemas
+
+When using any of the following patterns, set `"v":2` in the metadata line. All plots are rendered as inline SVG by the viewer.
+
+#### `line`
+```json
+{
+  "labels": ["Jan","Feb","Mar","Apr","May"],
+  "series": [
+    {"name":"Revenue","values":[10,15,12,18,22],"color":"planA"}
+  ],
+  "xLabel": "Month",
+  "yLabel": "$ (thousands)",
+  "max": 25
+}
+```
+`series[].values.length` must equal `labels.length`. `max` and `min` are optional axis overrides.
+
+#### `area`
+```json
+{
+  "labels": ["Jan","Feb","Mar","Apr","May"],
+  "series": [
+    {"name":"Users","values":[100,250,400,700,950],"color":"planA"}
+  ],
+  "stacked": false,
+  "xLabel": "Week",
+  "yLabel": "Users"
+}
+```
+For `stacked` variant, set `"stacked":true`. For `normalized` variant, values are auto-normalized to 100%.
+
+#### `pie`
+```json
+{
+  "slices": [
+    {"label":"Desktop","value":55,"color":"planA"},
+    {"label":"Mobile","value":35,"color":"planB"},
+    {"label":"Tablet","value":10,"color":"planC"}
+  ]
+}
+```
+Best limited to 2–5 slices. Labels are rendered inside slices when the slice is ≥5% of total.
+
+#### `donut`
+```json
+{
+  "slices": [
+    {"label":"Eng","value":45,"color":"planA"},
+    {"label":"Sales","value":30,"color":"planB"}
+  ],
+  "center": {"value":"$2M","label":"Total"}
+}
+```
+`center` is optional; shown as large text inside the ring.
+
+#### `scatter`
+```json
+{
+  "series": [
+    {"name":"Group A","points":[{"x":1,"y":5},{"x":3,"y":8}],"color":"planA"}
+  ],
+  "xLabel": "Height",
+  "yLabel": "Weight"
+}
+```
+For `labeled` variant, add `"label":"..."` to each point. For `trend` variant, a regression line is auto-computed.
+
+#### `histogram`
+```json
+{
+  "bins": [
+    {"range":"0–20","count":5},
+    {"range":"20–40","count":12},
+    {"range":"40–60","count":25}
+  ],
+  "xLabel": "Score",
+  "yLabel": "Frequency"
+}
+```
+For `cumulative` variant, a cumulative line is overlaid.
+
+#### `stacked-bar`
+```json
+{
+  "labels": ["Q1","Q2","Q3","Q4"],
+  "series": [
+    {"name":"Product A","values":[30,35,40,45],"color":"planA"},
+    {"name":"Product B","values":[20,25,15,30],"color":"planB"}
+  ],
+  "max": 100
+}
+```
+`series[].values.length` must equal `labels.length`. For `normalized` variant, values are auto-normalized to 100%.
+
+#### `boxplot`
+```json
+{
+  "groups": [
+    {"label":"Eng","min":60,"q1":75,"median":90,"q3":110,"max":140,"outliers":[45,160]},
+    {"label":"Sales","min":40,"q1":55,"median":65,"q3":80,"max":100}
+  ]
+}
+```
+`outliers` is optional. All five-number summary fields (`min`, `q1`, `median`, `q3`, `max`) are required.
+
+#### `heatmap`
+```json
+{
+  "xLabels": ["Mon","Tue","Wed","Thu","Fri"],
+  "yLabels": ["AM","PM","Eve"],
+  "values": [[5,3,8,2,7],[9,4,6,3,5],[2,7,4,8,1]],
+  "colorScale": {"low":"#e8e8e0","high":"planA"},
+  "annotated": true
+}
+```
+`values` is a 2D array: `values[y][x]`. Dimensions must match `yLabels.length × xLabels.length`. `annotated` shows values in cells.
+
+#### `waterfall`
+```json
+{
+  "items": [
+    {"label":"Revenue","value":100,"type":"total"},
+    {"label":"COGS","value":-30,"type":"decrease"},
+    {"label":"OpEx","value":-25,"type":"decrease"},
+    {"label":"Net","value":35,"type":"total"}
+  ]
+}
+```
+`type`: `"total"` (absolute bar from zero), `"increase"` (positive delta), `"decrease"` (negative delta). For `colored` variant, increases are green and decreases are red.
+
+#### `funnel`
+```json
+{
+  "stages": [
+    {"label":"Visitors","value":1000,"color":"planA"},
+    {"label":"Leads","value":600},
+    {"label":"Qualified","value":300},
+    {"label":"Won","value":100}
+  ]
+}
+```
+Stages should be ordered from largest to smallest. For `proportional` variant, widths scale exactly to values.
+
+#### `candlestick`
+```json
+{
+  "candles": [
+    {"label":"Mon","open":100,"high":110,"low":95,"close":105},
+    {"label":"Tue","open":105,"high":115,"low":100,"close":98}
+  ],
+  "bullColor": "planA",
+  "bearColor": "planB"
+}
+```
+All four OHLC fields required per candle. `bullColor`/`bearColor` default to green/red.
+
+#### `bubble`
+```json
+{
+  "series": [
+    {"name":"Products","points":[
+      {"x":20,"y":80,"r":30,"label":"A"},
+      {"x":50,"y":60,"r":15,"label":"B"}
+    ],"color":"planA"}
+  ],
+  "xLabel": "Price",
+  "yLabel": "Quality",
+  "rLabel": "Market Share"
+}
+```
+`r` encodes the third variable as bubble radius. For `packed` variant, no axes — bubbles are packed in a circle layout.
+
+#### `violin`
+```json
+{
+  "groups": [
+    {"label":"API A","density":[[10,0.02],[20,0.1],[30,0.25],[40,0.15],[50,0.03]],"color":"planA"}
+  ]
+}
+```
+`density` is an array of `[value, frequency]` pairs defining the kernel density estimate. For `with-box` variant, add `q1`, `median`, `q3`, `min`, `max` fields to each group.
+
+#### `gantt`
+```json
+{
+  "tasks": [
+    {"label":"Design","start":0,"end":3,"color":"planA"},
+    {"label":"Dev","start":2,"end":7,"color":"planB"}
+  ],
+  "labels": ["W1","W2","W3","W4","W5","W6","W7","W8"],
+  "milestones": [{"label":"Alpha","at":5}]
+}
+```
+`start`/`end` are numeric positions on the timeline axis. `labels` maps positions to display text. `milestones` are diamond markers.
+
+#### `treemap`
+```json
+{
+  "items": [
+    {"label":"System","value":50,"color":"planA","children":[
+      {"label":"OS","value":30},{"label":"Drivers","value":20}
+    ]},
+    {"label":"Apps","value":30,"color":"planB"}
+  ]
+}
+```
+`children` is optional for hierarchical layout. For `flat` variant, children are ignored. For `labeled` variant, values are shown in cells.
+
+#### `sankey`
+```json
+{
+  "nodes": ["Organic","Paid","Social","Landing","Signup"],
+  "links": [
+    {"from":0,"to":3,"value":40,"color":"planA"},
+    {"from":1,"to":3,"value":25},
+    {"from":3,"to":4,"value":50}
+  ]
+}
+```
+`from`/`to` are zero-based indices into `nodes`. `value` determines ribbon width. For `colored` variant, links inherit the source node's colour.
+
+---
+
 ### Step P2-5 — Palette extraction (semantic names)
 
 Walk every card in the deck and collect distinct hex values. Map each hex to a **semantic name derived from the content**, never a slot index.
@@ -461,6 +728,23 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `checklist` → `items`
 - [ ] Radar `series[].values.length === axes.length`; `max` is a positive number
 - [ ] KPI `direction` ∈ `{up, dn}`; quote `tone` ∈ `{ok, warn, danger}`
+- [ ] Format v2 patterns: `meta.v` is `2` when using any plot pattern (line, area, pie, donut, scatter, histogram, stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey)
+- [ ] Format v2 required keys per plot pattern:
+  - `line` / `area` → `labels`, `series`; `series[].values.length === labels.length`
+  - `pie` / `donut` → `slices`
+  - `scatter` / `bubble` → `series` with `points[]`
+  - `histogram` → `bins`
+  - `stacked-bar` → `labels`, `series`; `series[].values.length === labels.length`
+  - `boxplot` → `groups` with `min`, `q1`, `median`, `q3`, `max`
+  - `heatmap` → `xLabels`, `yLabels`, `values`; `values[y].length === xLabels.length`
+  - `waterfall` → `items` with `type` ∈ `{total, increase, decrease}`
+  - `funnel` → `stages`
+  - `candlestick` → `candles` with `open`, `high`, `low`, `close`
+  - `violin` → `groups` with `density` (array of `[value, freq]` pairs)
+  - `gantt` → `tasks` with `start`, `end`
+  - `treemap` → `items` with `value`
+  - `sankey` → `nodes`, `links` with `from`, `to`, `value`; indices valid into `nodes`
+- [ ] No data array exceeds 10 elements (see P2-4b data density rule)
 - [ ] Set indices form a contiguous sequence starting at 0 (preferred for round-trip ordering)
 - [ ] Card 0 of each Set has no `variant` (or `variant:"default"`)
 - [ ] No raw hex inside `content.*.color` / `content.*.accent` — palette keys only
@@ -482,7 +766,7 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 
 ## Phase 2 design checklist
 
-- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`
+- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`; `"v":2` when using plot patterns
 - [ ] No `"pattern":"toc"` cards in file (viewer auto-generates Outline at viewer set 1)
 - [ ] Cards in box reading order: Set 0 Card 0 → Set 0 Card 1 → … → Set N Card last
 - [ ] Card 0 of each Set has no `variant` field (it is the cover/default)
@@ -498,4 +782,5 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 - [ ] Checklist items have `"id"` fields; `status` ∈ `{empty, check, strikethrough}`; `variant` ∈ `{default, numbered, grid}`
 - [ ] One self-contained `.cards` file
 - [ ] UTF-8 encoding, no BOM, no trailing comma, no comments
+- [ ] No data array exceeds 10 items; datasets >10 downsampled via quartile method (P2-4b)
 - [ ] Validates against the Card Box Validator with zero errors
