@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repository Is
 
-This is a **Claude Code skill repository**. The `README.md` is the skill specification (effectively a `SKILL.md`) — a step-by-step template that instructs Claude how to generate `.cards` JSONL deck files for the Card Box Viewer (card.trth.nl).
+This is a **Claude Code skill repository**. The `SKILL.md` is the skill specification — a step-by-step template that instructs Claude how to generate `.cards` JSONL deck files for the Card Box Viewer (card.trth.nl).
 
 There is no build system, no npm packages, no compilation step. The output of the skill is a single `.cards` file — plain UTF-8 JSONL, one JSON object per line. No HTML, CSS, or JS.
 
@@ -70,13 +70,13 @@ Generated `.cards` output must use **one JSON object per line** with **no extra 
 
 ## Updating the Skill Spec
 
-When modifying `README.md` (the skill spec), bump the version string in `README.md` and add a changelog row to `CHANGELOG`. Current version: **3.0.1** (2026-05-12).
+When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. Current version: **3.2.1** (2026-05-26).
 
 ### Version release workflow
 
-1. Edit `README.md`: bump version string
+1. Edit `SKILL.md`: bump version string
 2. Edit `CHANGELOG`: add changelog row at the top of the table
-3. `git add README.md CHANGELOG`
+3. `git add SKILL.md CHANGELOG`
 4. `git commit -S -m "<message>"` — GPG-signed commit
 5. `git push`
 6. `git tag -s vX.Y.Z -m "vX.Y.Z: <short description>"` — GPG-signed tag

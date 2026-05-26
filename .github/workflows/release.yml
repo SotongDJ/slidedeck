@@ -28,7 +28,7 @@ jobs:
         if: steps.tag.outputs.found == 'true'
         run: |
           mkdir -p _tmp
-          cp README.md _tmp/SKILL.md
+          cp SKILL.md _tmp/SKILL.md
           cd _tmp
           zip "mobile-slidedeck-${{ steps.tag.outputs.name }}.skill" SKILL.md
 
