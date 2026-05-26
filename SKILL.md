@@ -2,18 +2,15 @@
 name: mobile-slidedeck
 description: >
   Generate a .cards JSONL deck file for the Card Box Viewer (card.trth.nl).
-  Use this skill whenever the user wants to present structured content as a swipeable deck,
+  Invoke whenever the user wants to present structured content as a swipeable deck,
   card box, or viewer-ready data file — even if they don't say "slide deck" explicitly.
-  Phase 1: gather codename, language (mono/bilingual), orientation hint, content/topic.
-  Phase 2: generate {codename}_box.cards — UTF-8 JSONL, one JSON object per line, no HTML.
-  Orientation hint (portrait default, landscape for widescreen/16:9) guides content density.
-  Default language is English only. Ask user if bilingual is needed and what the second language is.
   For HTML output (Slidedeck .html or Card Box .html), use v2.x of this skill instead.
-  Format v2 adds 17 SVG data visualisation plots: line, area, pie, donut, scatter, histogram,
-  stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
-  Format v3 adds two-level patterns (layout + pattern) with 6 layouts (title, full, dual, fulldual,
-  dual-hybrid, fulldual-hybrid) and 4 new content patterns (text, image, embed, multimedia).
-  Max 10 data points per figure; downsample larger datasets via quartile method.
+  Supports 35 patterns: 14 core (cover, table, bar, segment, yn-grid, pick, tier, stat,
+  kpi, quote, radar, brand, note, checklist); 17 SVG data plots (line, area, pie, donut,
+  scatter, histogram, stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick,
+  bubble, violin, gantt, treemap, sankey); 4 v3 content patterns (text, image, embed,
+  multimedia) with 6 layout modes (title, full, dual, fulldual, dual-hybrid, fulldual-hybrid).
+  Max 10 data points per figure; quartile downsampling for larger datasets.
   Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
   data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots,
   line chart, pie chart, scatter plot, histogram, heatmap, gantt chart, data visualisation,
@@ -23,18 +20,11 @@ description: >
 
 # Mobile Slidedeck & Card Box Skill
 
-[![Pipeline Status](https://gitlab.com/djtratoh/card.trth.nl/badges/main/pipeline.svg)](https://gitlab.com/djtratoh/card.trth.nl/-/commits/main)
-[![Release Skill](https://github.com/SotongDJ/slidedeck/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/SotongDJ/slidedeck/actions/workflows/release.yml)
-
 Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or JS output.
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.2.1**
-
----
-
-See [CHANGELOG](https://github.com/SotongDJ/slidedeck/blob/main/CHANGELOG) for full version history.
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.2.2**
 
 ---
 
@@ -798,7 +788,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
 - [ ] Metadata has `title` and `codename`
 - [ ] Every line parses as JSON; no trailing comma, no `//` comments, no extra whitespace between lines
 - [ ] No `"pattern":"toc"` in any card line — viewer generates the Outline
-- [ ] Every card has a `set` (number or string) and `pattern` (one of the 14 keys)
+- [ ] Every card has a `set` (number or string) and `pattern` (one of the documented pattern keys)
 - [ ] Every `pattern` resolves to a known variant or the default
 - [ ] Every `color` / `accent` reference resolves: hex, palette key, tier name, or `var(...)`
 - [ ] Checklist `items[].id` present on every item; `status` ∈ `{empty, check, strikethrough}` (or absent for default `empty`); `variant` ∈ `{default, numbered, grid}` (or absent)
