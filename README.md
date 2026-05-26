@@ -11,11 +11,14 @@ description: >
   For HTML output (Slidedeck .html or Card Box .html), use v2.x of this skill instead.
   Format v2 adds 17 SVG data visualisation plots: line, area, pie, donut, scatter, histogram,
   stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
+  Format v3 adds two-level patterns (layout + pattern) with 6 layouts (title, full, dual, fulldual,
+  dual-hybrid, fulldual-hybrid) and 4 new content patterns (text, image, embed, multimedia).
   Max 10 data points per figure; downsample larger datasets via quartile method.
   Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
   data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots,
   line chart, pie chart, scatter plot, histogram, heatmap, gantt chart, data visualisation,
-  JSONL export, viewer-ready data, cardbox data file, .cards file, card box viewer.
+  JSONL export, viewer-ready data, cardbox data file, .cards file, card box viewer,
+  full-bleed, dual column, side by side, image card, multimedia, embed.
 ---
 
 # Mobile Slidedeck & Card Box Skill
@@ -27,7 +30,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.1.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.2.0**
 
 ---
 
@@ -124,7 +127,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 | Field | Required | Notes |
 |---|---|---|
 | `type` | Yes | Always `"meta"` |
-| `v` | Recommended | Format version integer. `2` for decks using plot patterns; omit or `1` for the original 14-pattern format |
+| `v` | Recommended | Format version integer. `3` for two-level patterns (layout field); `2` for plot patterns only; omit or `1` for the original 14-pattern format |
 | `title` | Yes | Deck title (matches the cover card title) |
 | `subtitle` | If present | From cover-slide subtitle |
 | `codename` | Yes | Same value as Phase 1; viewer uses for `localStorage` keying |
@@ -136,7 +139,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 Example:
 
 ```json
-{"type":"meta","v":2,"title":"Visualization Library","subtitle":"31 patterns","codename":"vizdemo","version":"v3.1.0","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
+{"type":"meta","v":3,"title":"Visualization Library","subtitle":"35 patterns","codename":"vizdemo","version":"v3.2.0","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
 ```
 
 ---
@@ -179,6 +182,11 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | Gantt chart | `"gantt"` | `default` · `grouped` · `minimal` |
 | Treemap | `"treemap"` | `default` · `flat` · `labeled` |
 | Sankey diagram | `"sankey"` | `default` · `vertical` · `colored` |
+| **Format v3 — content patterns (`"v":3` in metadata)** |||
+| Text (paragraphs) | `"text"` | _(no variants)_ |
+| Image (remote) | `"image"` | _(no variants)_ |
+| Embed (HTML element) | `"embed"` | _(no variants)_ |
+| Multimedia (audio/video) | `"multimedia"` | _(no variants)_ |
 
 > **`"pattern":"toc"` is prohibited.** The viewer silently skips any card with that pattern — the Outline is auto-generated on every load and is never stored in the file.
 
@@ -194,13 +202,16 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | Field | Required | Notes |
 |---|---|---|
 | `set` | Yes | Set index from the box (`0`, `1`, … as integers preferred; strings accepted) |
-| `pattern` | Yes | One of the 14 keys from P2-2 |
+| `layout` | v3 only | Layout mode: `title` (default), `full`, `dual`, `fulldual`, `dual-hybrid`, `fulldual-hybrid`. Omit for `title`. |
+| `pattern` | Yes | One of the pattern keys from P2-2 |
 | `variant` | If not default | One of the documented variants for this pattern |
 | `tag` | If present | The card's top-left tag (e.g. `"Pattern A · Table"` or `"Variant 1 · Transposed"`) |
 | `title` | If present | The card's title text |
 | `subline` | If present | The card's `.subline` text |
 | `note` | If present | The card's `.note-block` footer text |
 | `content` | Yes for non-cover | Pattern-specific payload; see Step P2-4 |
+| `left` | v3 hybrid only | `{pattern, content, variant}` for the left column in `dual-hybrid` / `fulldual-hybrid` |
+| `right` | v3 hybrid only | `{pattern, content, variant}` for the right column in `dual-hybrid` / `fulldual-hybrid` |
 
 **Round-trip rule:** emit cards in box reading order (Set 0 Card 0 → Set 0 Card 1 → … → Set 0 Card last → Set 1 Card 0 → …). The viewer buckets by `set`, so contiguous integer set keys preserve original positions.
 
@@ -639,6 +650,85 @@ All four OHLC fields required per candle. `bullColor`/`bearColor` default to gre
 
 ---
 
+### Step P2-4d — Format v3 layout system and content schemas
+
+When using two-level patterns (layout + pattern), set `"v":3` in the metadata line.
+
+#### Layout modes
+
+| Layout | Title header | Columns | Content source |
+|---|---|---|---|
+| `title` (default) | Yes (tag + title + subline + note) | 1 | `content` |
+| `full` | No | 1 | `content` |
+| `dual` | Yes | 2 (same pattern) | `content.left`, `content.right` |
+| `fulldual` | No | 2 (same pattern) | `content.left`, `content.right` |
+| `dual-hybrid` | Yes | 2 (different patterns) | `left.{pattern,content}`, `right.{pattern,content}` |
+| `fulldual-hybrid` | No | 2 (different patterns) | `left.{pattern,content}`, `right.{pattern,content}` |
+
+**Dual (same pattern)** — both columns use the card's `pattern` field:
+```json
+{"set":1,"layout":"dual","pattern":"bar","title":"Comparison","content":{"left":{"max":100,"items":[...]},"right":{"max":100,"items":[...]}}}
+```
+
+**Hybrid (different patterns)** — each column specifies its own pattern:
+```json
+{"set":2,"layout":"dual-hybrid","title":"Mixed","left":{"pattern":"text","content":{"paragraphs":["..."]}},"right":{"pattern":"bar","content":{"max":100,"items":[...]}}}
+```
+
+**Full (no title)** — body fills entire card face:
+```json
+{"set":3,"layout":"full","pattern":"image","content":{"src":"https://example.com/photo.jpg","fit":"cover"}}
+```
+
+#### V3 content patterns
+
+##### `text`
+```json
+{
+  "paragraphs": ["First paragraph with <strong>rich</strong> text.", "Second paragraph."]
+}
+```
+Renders stacked `<p>` elements with `richEsc` (safe inline HTML: `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>`, `<code>`, `<b>`, `<i>`, `<u>`).
+
+##### `image`
+```json
+{
+  "src": "https://example.com/photo.jpg",
+  "fit": "contain",
+  "alt": "Description",
+  "caption": "Photo credit"
+}
+```
+| Field | Required | Notes |
+|---|---|---|
+| `src` | Yes | Remote image URL |
+| `fit` | No | `"contain"` (default) or `"cover"` |
+| `alt` | No | Alt text for accessibility |
+| `caption` | No | Caption rendered below the image |
+
+##### `embed`
+```json
+{
+  "html": "<iframe src=\"https://example.com/embed\" width=\"100%\" height=\"300\"></iframe>"
+}
+```
+Only allowlisted HTML tags are rendered: `<iframe>`, `<video>`, `<audio>`, `<canvas>`. Safe attributes only: `src`, `width`, `height`, `controls`, `autoplay`, `sandbox`, `allow`, `frameborder`, `style`, `poster`, `preload`, `loop`, `muted`. Iframes automatically receive `sandbox="allow-scripts allow-same-origin"`.
+
+##### `multimedia`
+```json
+{
+  "src": "https://example.com/track.mp3",
+  "type": "audio"
+}
+```
+| Field | Required | Notes |
+|---|---|---|
+| `src` | Yes | Remote audio/video URL |
+| `type` | Yes | `"audio"` or `"video"` |
+| `poster` | No | Poster image URL (video only) |
+
+---
+
 ### Step P2-5 — Palette extraction (semantic names)
 
 Walk every card in the deck and collect distinct hex values. Map each hex to a **semantic name derived from the content**, never a slot index.
@@ -728,7 +818,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `checklist` → `items`
 - [ ] Radar `series[].values.length === axes.length`; `max` is a positive number
 - [ ] KPI `direction` ∈ `{up, dn}`; quote `tone` ∈ `{ok, warn, danger}`
-- [ ] Format v2 patterns: `meta.v` is `2` when using any plot pattern (line, area, pie, donut, scatter, histogram, stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey)
+- [ ] Format v2 patterns: `meta.v` ≥ `2` when using any plot pattern (line, area, pie, donut, scatter, histogram, stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey)
 - [ ] Format v2 required keys per plot pattern:
   - `line` / `area` → `labels`, `series`; `series[].values.length === labels.length`
   - `pie` / `donut` → `slices`
@@ -744,6 +834,17 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `gantt` → `tasks` with `start`, `end`
   - `treemap` → `items` with `value`
   - `sankey` → `nodes`, `links` with `from`, `to`, `value`; indices valid into `nodes`
+- [ ] Format v3 patterns: `meta.v` is `3` when using `layout` field or v3 content patterns (text, image, embed, multimedia)
+- [ ] Format v3 layout validation:
+  - `layout` ∈ `{title, full, dual, fulldual, dual-hybrid, fulldual-hybrid}` (or absent for default `title`)
+  - `dual` / `fulldual` → `content.left` and `content.right` both present
+  - `dual-hybrid` / `fulldual-hybrid` → `left` and `right` top-level fields with `pattern` and `content`
+  - `full` / `fulldual` / `fulldual-hybrid` → `title`, `tag`, `subline`, `note` are ignored (not rendered)
+- [ ] Format v3 required content keys:
+  - `text` → `paragraphs` (array of strings)
+  - `image` → `src` (URL string)
+  - `embed` → `html` (string with allowlisted tags only: iframe, video, audio, canvas)
+  - `multimedia` → `src` (URL string), `type` ∈ `{audio, video}`
 - [ ] No data array exceeds 10 elements (see P2-4b data density rule)
 - [ ] Set indices form a contiguous sequence starting at 0 (preferred for round-trip ordering)
 - [ ] Card 0 of each Set has no `variant` (or `variant:"default"`)
@@ -766,11 +867,11 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 
 ## Phase 2 design checklist
 
-- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`; `"v":2` when using plot patterns
+- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`; `"v":2` when using plot patterns; `"v":3` when using layout field or v3 patterns
 - [ ] No `"pattern":"toc"` cards in file (viewer auto-generates Outline at viewer set 1)
 - [ ] Cards in box reading order: Set 0 Card 0 → Set 0 Card 1 → … → Set N Card last
 - [ ] Card 0 of each Set has no `variant` field (it is the cover/default)
-- [ ] Pattern shared across all cards in a Set; only `variant` differs
+- [ ] Pattern shared across all cards in a Set; only `variant` differs (exception: hybrid layouts use different patterns per column)
 - [ ] All hex colours in `content.*.color` and `content.*.accent` rewritten as palette keys
 - [ ] Palette names are semantic (`planA`, `agoda`, `bronze`) — never slot indices unless entity is unnamed
 - [ ] Variants chosen from the documented list per pattern (see P2-2) or omitted for default
@@ -780,6 +881,8 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 - [ ] `meta.theme` emitted only if customising CSS variables beyond viewer defaults
 - [ ] No `<span>` tags in any `content.*` text field; allowed inline subset is `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>` only
 - [ ] Checklist items have `"id"` fields; `status` ∈ `{empty, check, strikethrough}`; `variant` ∈ `{default, numbered, grid}`
+- [ ] v3 layout: `dual`/`fulldual` cards have `content.left` + `content.right`; `dual-hybrid`/`fulldual-hybrid` have top-level `left` + `right` with `{pattern, content}`
+- [ ] v3 patterns: `text` has `paragraphs`; `image` has `src`; `embed` has `html`; `multimedia` has `src` + `type`
 - [ ] One self-contained `.cards` file
 - [ ] UTF-8 encoding, no BOM, no trailing comma, no comments
 - [ ] No data array exceeds 10 items; datasets >10 downsampled via quartile method (P2-4b)
