@@ -70,7 +70,7 @@ Generated `.cards` output must use **one JSON object per line** with **no extra 
 
 ## Updating the Skill Spec
 
-When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. Current version: **3.2.1** (2026-05-26).
+When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. Current version: **3.4.0** (2026-05-27).
 
 ### Version release workflow
 
