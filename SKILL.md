@@ -1,21 +1,19 @@
 ---
 name: mobile-slidedeck
 description: >
-  Generate a .cards JSONL deck file for the Card Box Viewer (card.trth.nl).
-  Invoke whenever the user wants to present structured content as a swipeable deck,
-  card box, or viewer-ready data file — even if they don't say "slide deck" explicitly.
-  For HTML output (Slidedeck .html or Card Box .html), use v2.x of this skill instead.
-  Supports 35 patterns: 14 core (cover, table, bar, segment, yn-grid, pick, tier, stat,
-  kpi, quote, radar, brand, note, checklist); 17 SVG data plots (line, area, pie, donut,
-  scatter, histogram, stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick,
-  bubble, violin, gantt, treemap, sankey); 4 v3 content patterns (text, image, embed,
-  multimedia) with 6 layout modes (title, full, dual, fulldual, dual-hybrid, fulldual-hybrid).
-  Max 10 data points per figure; quartile downsampling for larger datasets.
-  Trigger on: make slides, slidedeck, card box, swipeable presentation, one slide per chapter,
-  data comparisons, ratings, rankings, scorecards, tier progressions, charts, radar plots,
-  line chart, pie chart, scatter plot, histogram, heatmap, gantt chart, data visualisation,
-  JSONL export, viewer-ready data, cardbox data file, .cards file, card box viewer,
-  full-bleed, dual column, side by side, image card, multimedia, embed.
+  Generate a `cards` deck file for the Card Box Viewer.
+  Use this skill for the user to present structured content as a cardbox: a viewer-ready JSONL file
+  Phase 1: gather codename, lang (mono/bi), orientation, topic.
+  Phase 2: generate {codename}_box.cards — UTF-8 JSONL, one JSON object per line, no HTML.
+  Orientation hint (portrait default) guides content density.
+  Default language is English only. Ask user if bilingual is needed and what the second language is.
+  For HTML output, use v2.x of this skill instead.
+  Format v2 adds 17 SVG data visualisation: line, area, pie, donut, scatter, histogram,
+  stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
+  Format v3 adds two-level patterns (layout + pattern) with 6 layouts (title, full, dual, fulldual,
+  dual-hybrid, fulldual-hybrid) and 4 new content patterns (text, image, embed, multimedia).
+  Max 10 data points per figure; downsample larger datasets via quartile method.
+  Trigger on: make slidedeck
 ---
 
 # Mobile Slidedeck & Card Box Skill
@@ -24,7 +22,11 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.2.2**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.2.3**
+
+---
+
+See [CHANGELOG](https://github.com/SotongDJ/slidedeck/blob/main/CHANGELOG) for full version history.
 
 ---
 
