@@ -10,8 +10,8 @@ description: >
   For HTML output, use v2.x of this skill instead.
   Format v2 adds 17 SVG data visualisation: line, area, pie, donut, scatter, histogram,
   stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
-  Format v3 adds two-level patterns (layout + pattern) with 6 layouts (title, full, dual, fulldual,
-  dual-hybrid, fulldual-hybrid) and 4 new content patterns (text, image, embed, multimedia).
+  Format v3 adds two-level patterns (layout + pattern) with 4 layouts (title, full,
+  dual-hybrid, fulldual-hybrid) and 5 content patterns (text, image, audio, video, embed).
   Max 10 data points per figure; downsample larger datasets via quartile method.
   Trigger on: make slidedeck
 ---
@@ -22,7 +22,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.3.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.4.0**
 
 ---
 
@@ -177,8 +177,9 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | **Format v3 — content patterns** |||
 | Text (paragraphs) | `"text"` | _(no variants)_ |
 | Image (remote) | `"image"` | _(no variants)_ |
+| Audio player | `"audio"` | _(no variants)_ |
+| Video player | `"video"` | _(no variants)_ |
 | Embed (HTML element) | `"embed"` | _(no variants)_ |
-| Multimedia (audio/video) | `"multimedia"` | _(no variants)_ |
 
 > **`"pattern":"toc"` is prohibited.** The viewer silently skips any card with that pattern — the Outline is auto-generated on every load and is never stored in the file.
 
@@ -194,7 +195,7 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | Field | Required | Notes |
 |---|---|---|
 | `set` | Yes | Set index from the box (`0`, `1`, … as integers preferred; strings accepted) |
-| `layout` | v3 only | Layout mode: `title` (default), `full`, `dual`, `fulldual`, `dual-hybrid`, `fulldual-hybrid`. Omit for `title`. |
+| `layout` | v3 only | Layout mode: `title` (default), `full`, `dual-hybrid`, `fulldual-hybrid`. Omit for `title`. |
 | `pattern` | Yes | One of the pattern keys from P2-2 |
 | `variant` | If not default | One of the documented variants for this pattern |
 | `tag` | If present | The card's top-left tag (e.g. `"Pattern A · Table"` or `"Variant 1 · Transposed"`) |
@@ -652,15 +653,10 @@ When using two-level patterns (layout + pattern), set `"v":3` in the metadata li
 |---|---|---|---|
 | `title` (default) | Yes (tag + title + subline + note) | 1 | `content` |
 | `full` | No | 1 | `content` |
-| `dual` | Yes | 2 (same pattern) | `content.left`, `content.right` |
-| `fulldual` | No | 2 (same pattern) | `content.left`, `content.right` |
 | `dual-hybrid` | Yes | 2 (different patterns) | `left.{pattern,content}`, `right.{pattern,content}` |
 | `fulldual-hybrid` | No | 2 (different patterns) | `left.{pattern,content}`, `right.{pattern,content}` |
 
-**Dual (same pattern)** — both columns use the card's `pattern` field:
-```json
-{"set":1,"layout":"dual","pattern":"bar","title":"Comparison","content":{"left":{"max":100,"items":[...]},"right":{"max":100,"items":[...]}}}
-```
+Old `dual`/`fulldual` layouts are accepted for backward compatibility and auto-migrate to `dual-hybrid`/`fulldual-hybrid` on load.
 
 **Hybrid (different patterns)** — each column specifies its own pattern:
 ```json
@@ -706,18 +702,35 @@ Renders stacked `<p>` elements with `richEsc` (safe inline HTML: `<strong>`, `<e
 ```
 Only allowlisted HTML tags are rendered: `<iframe>`, `<video>`, `<audio>`, `<canvas>`. Safe attributes only: `src`, `width`, `height`, `controls`, `autoplay`, `sandbox`, `allow`, `frameborder`, `style`, `poster`, `preload`, `loop`, `muted`. Iframes automatically receive `sandbox="allow-scripts allow-same-origin"`.
 
-##### `multimedia`
+##### `audio`
 ```json
 {
   "src": "https://example.com/track.mp3",
-  "type": "audio"
+  "cover": "https://example.com/cover.jpg",
+  "title": "Episode 1",
+  "artist": "Podcast Name"
 }
 ```
 | Field | Required | Notes |
 |---|---|---|
-| `src` | Yes | Remote audio/video URL |
-| `type` | Yes | `"audio"` or `"video"` |
-| `poster` | No | Poster image URL (video only) |
+| `src` | Yes | Remote audio URL |
+| `cover` | No | Cover image URL. Shows a placeholder icon if omitted. |
+| `title` | No | Track title displayed below cover art |
+| `artist` | No | Artist name displayed below track title |
+
+##### `video`
+```json
+{
+  "src": "https://example.com/clip.mp4",
+  "poster": "https://example.com/thumb.jpg"
+}
+```
+| Field | Required | Notes |
+|---|---|---|
+| `src` | Yes | Remote video URL |
+| `poster` | No | Poster image URL |
+
+> The legacy `multimedia` pattern is accepted and auto-migrates to `audio` or `video` on load. New decks should use `audio` or `video` directly.
 
 ---
 
@@ -827,15 +840,15 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `treemap` → `items` with `value`
   - `sankey` → `nodes`, `links` with `from`, `to`, `value`; indices valid into `nodes`
 - [ ] Format v3 layout validation (layout field available because `meta.v` is always `3`):
-  - `layout` ∈ `{title, full, dual, fulldual, dual-hybrid, fulldual-hybrid}` (or absent for default `title`)
-  - `dual` / `fulldual` → `content.left` and `content.right` both present
+  - `layout` ∈ `{title, full, dual-hybrid, fulldual-hybrid}` (or absent for default `title`)
   - `dual-hybrid` / `fulldual-hybrid` → `left` and `right` top-level fields with `pattern` and `content`
-  - `full` / `fulldual` / `fulldual-hybrid` → `title`, `tag`, `subline`, `note` are ignored (not rendered)
+  - `full` / `fulldual-hybrid` → `title`, `tag`, `subline`, `note` are ignored (not rendered)
 - [ ] Format v3 required content keys:
   - `text` → `paragraphs` (array of strings)
   - `image` → `src` (URL string)
+  - `audio` → `src` (URL string); optional `cover`, `title`, `artist`
+  - `video` → `src` (URL string); optional `poster`
   - `embed` → `html` (string with allowlisted tags only: iframe, video, audio, canvas)
-  - `multimedia` → `src` (URL string), `type` ∈ `{audio, video}`
 - [ ] No data array exceeds 10 elements (see P2-4b data density rule)
 - [ ] Set indices form a contiguous sequence starting at 0 (preferred for round-trip ordering)
 - [ ] Card 0 of each Set has no `variant` (or `variant:"default"`)
@@ -872,8 +885,8 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 - [ ] `meta.theme` emitted only if customising CSS variables beyond viewer defaults
 - [ ] No `<span>` tags in any `content.*` text field; allowed inline subset is `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>` only
 - [ ] Checklist items have `"id"` fields; `status` ∈ `{empty, check, strikethrough}`; `variant` ∈ `{default, numbered, grid}`
-- [ ] v3 layout: `dual`/`fulldual` cards have `content.left` + `content.right`; `dual-hybrid`/`fulldual-hybrid` have top-level `left` + `right` with `{pattern, content}`
-- [ ] v3 patterns: `text` has `paragraphs`; `image` has `src`; `embed` has `html`; `multimedia` has `src` + `type`
+- [ ] v3 layout: `dual-hybrid`/`fulldual-hybrid` have top-level `left` + `right` with `{pattern, content}`
+- [ ] v3 patterns: `text` has `paragraphs`; `image` has `src`; `audio` has `src` (optional `cover`, `title`, `artist`); `video` has `src` (optional `poster`); `embed` has `html`
 - [ ] One self-contained `.cards` file
 - [ ] UTF-8 encoding, no BOM, no trailing comma, no comments
 - [ ] No data array exceeds 10 items; datasets >10 downsampled via quartile method (P2-4b)
