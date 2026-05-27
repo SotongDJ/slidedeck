@@ -22,7 +22,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.4.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.5.0**
 
 ---
 
@@ -708,7 +708,8 @@ Only allowlisted HTML tags are rendered: `<iframe>`, `<video>`, `<audio>`, `<can
   "src": "https://example.com/track.mp3",
   "cover": "https://example.com/cover.jpg",
   "title": "Episode 1",
-  "artist": "Podcast Name"
+  "artist": "Podcast Name",
+  "lyric": "https://example.com/lyrics.vtt"
 }
 ```
 | Field | Required | Notes |
@@ -717,6 +718,7 @@ Only allowlisted HTML tags are rendered: `<iframe>`, `<video>`, `<audio>`, `<can
 | `cover` | No | Cover image URL. Shows a placeholder icon if omitted. |
 | `title` | No | Track title displayed below cover art |
 | `artist` | No | Artist name displayed below track title |
+| `lyric` | No | URL to `.vtt` or `.srt` lyric file for synced display during playback |
 
 ##### `video`
 ```json
@@ -846,7 +848,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
 - [ ] Format v3 required content keys:
   - `text` → `paragraphs` (array of strings)
   - `image` → `src` (URL string)
-  - `audio` → `src` (URL string); optional `cover`, `title`, `artist`
+  - `audio` → `src` (URL string); optional `cover`, `title`, `artist`, `lyric`
   - `video` → `src` (URL string); optional `poster`
   - `embed` → `html` (string with allowlisted tags only: iframe, video, audio, canvas)
 - [ ] No data array exceeds 10 elements (see P2-4b data density rule)
