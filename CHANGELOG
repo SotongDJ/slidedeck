@@ -4,6 +4,7 @@
 
 | Version | Date | Changes |
 |---|---|---|
+| **3.3.0** | 2026-05-27 | Always emit `"v":3` in metadata — viewer edit panel (pattern/layout/variant selectors) requires format v3; all v1 and v2 patterns work identically under v3. Removed conditional v1/v2 guidance from P2-1, P2-2, P2-4c, P2-8, and design checklist |
 | **3.2.3** | 2026-05-27 | Rewrite description for structured Phase 1/2 workflow summary; restore CHANGELOG link; retain "documented pattern keys" fix from v3.2.2 |
 | **3.2.2** | 2026-05-26 | SKILL.md optimisation: description trimmed — Phase 1/2 workflow summary removed, replaced with full 35-pattern enumeration (14 core + 17 SVG plots + 4 v3 content) and all 6 layout mode names for better triggering; CI/CD badge lines removed (GitHub display artefacts, noise during skill invocation); CHANGELOG link removed (same reason); P2-8 validation bug fixed: "one of the 14 keys" corrected to "one of the documented pattern keys" (skill has had 35 patterns since v3.1.0) |
 | **3.2.1** | 2026-05-26 | Repo restructure: `README.md` renamed to `SKILL.md` (skill spec now lives in dedicated file); new `README.md` added for GitHub repository browsing; `CLAUDE.md` updated to reference `SKILL.md`; release workflow updated to copy `SKILL.md` directly |

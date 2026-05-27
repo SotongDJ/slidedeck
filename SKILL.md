@@ -22,7 +22,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.2.3**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.3.0**
 
 ---
 
@@ -119,7 +119,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 | Field | Required | Notes |
 |---|---|---|
 | `type` | Yes | Always `"meta"` |
-| `v` | Recommended | Format version integer. `3` for two-level patterns (layout field); `2` for plot patterns only; omit or `1` for the original 14-pattern format |
+| `v` | Yes | Always `3`. The viewer's edit panel (pattern/layout/variant selectors) requires `v:3`; all v1 and v2 patterns work identically under v3 |
 | `title` | Yes | Deck title (matches the cover card title) |
 | `subtitle` | If present | From cover-slide subtitle |
 | `codename` | Yes | Same value as Phase 1; viewer uses for `localStorage` keying |
@@ -156,7 +156,7 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | Note box | `"note"` | `default` · `numbered` · `grid` |
 | Cover card (Set 0) | `"cover"` | `default` · `stat-first` · `centered` |
 | Checklist | `"checklist"` | `default` · `numbered` · `grid` |
-| **Format v2 — data visualisation plots (SVG, `"v":2` in metadata)** |||
+| **Format v2 — data visualisation plots (SVG)** |||
 | Line chart | `"line"` | `default` · `smooth` · `stepped` |
 | Area chart | `"area"` | `default` · `stacked` · `normalized` |
 | Pie chart | `"pie"` | `default` · `exploded` · `half` |
@@ -174,7 +174,7 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 | Gantt chart | `"gantt"` | `default` · `grouped` · `minimal` |
 | Treemap | `"treemap"` | `default` · `flat` · `labeled` |
 | Sankey diagram | `"sankey"` | `default` · `vertical` · `colored` |
-| **Format v3 — content patterns (`"v":3` in metadata)** |||
+| **Format v3 — content patterns** |||
 | Text (paragraphs) | `"text"` | _(no variants)_ |
 | Image (remote) | `"image"` | _(no variants)_ |
 | Embed (HTML element) | `"embed"` | _(no variants)_ |
@@ -420,7 +420,7 @@ This applies to all data arrays: `series[].values`, `points[]`, `bins[]`, `slice
 
 ### Step P2-4c — Format v2 plot content schemas
 
-When using any of the following patterns, set `"v":2` in the metadata line. All plots are rendered as inline SVG by the viewer.
+All plots are rendered as inline SVG by the viewer. Always set `"v":3` in the metadata line (not `"v":2`) — v3 is a superset that enables the viewer's full editing capabilities.
 
 #### `line`
 ```json
@@ -810,7 +810,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `checklist` → `items`
 - [ ] Radar `series[].values.length === axes.length`; `max` is a positive number
 - [ ] KPI `direction` ∈ `{up, dn}`; quote `tone` ∈ `{ok, warn, danger}`
-- [ ] Format v2 patterns: `meta.v` ≥ `2` when using any plot pattern (line, area, pie, donut, scatter, histogram, stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey)
+- [ ] `meta.v` is always `3` — required for the viewer's edit panel (pattern/layout/variant selectors)
 - [ ] Format v2 required keys per plot pattern:
   - `line` / `area` → `labels`, `series`; `series[].values.length === labels.length`
   - `pie` / `donut` → `slices`
@@ -826,8 +826,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `gantt` → `tasks` with `start`, `end`
   - `treemap` → `items` with `value`
   - `sankey` → `nodes`, `links` with `from`, `to`, `value`; indices valid into `nodes`
-- [ ] Format v3 patterns: `meta.v` is `3` when using `layout` field or v3 content patterns (text, image, embed, multimedia)
-- [ ] Format v3 layout validation:
+- [ ] Format v3 layout validation (layout field available because `meta.v` is always `3`):
   - `layout` ∈ `{title, full, dual, fulldual, dual-hybrid, fulldual-hybrid}` (or absent for default `title`)
   - `dual` / `fulldual` → `content.left` and `content.right` both present
   - `dual-hybrid` / `fulldual-hybrid` → `left` and `right` top-level fields with `pattern` and `content`
@@ -859,7 +858,7 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 
 ## Phase 2 design checklist
 
-- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`; `"v":2` when using plot patterns; `"v":3` when using layout field or v3 patterns
+- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`, `"v":3` (always v3 for viewer edit compatibility)
 - [ ] No `"pattern":"toc"` cards in file (viewer auto-generates Outline at viewer set 1)
 - [ ] Cards in box reading order: Set 0 Card 0 → Set 0 Card 1 → … → Set N Card last
 - [ ] Card 0 of each Set has no `variant` field (it is the cover/default)
