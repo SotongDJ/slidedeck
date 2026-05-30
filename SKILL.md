@@ -22,7 +22,7 @@ Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or J
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.5.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.6.0**
 
 ---
 
@@ -48,6 +48,12 @@ Before generating, collect:
 - Emit two separate files: `{codename}_box.en.cards` (L1) and `{codename}_box.{l2}.cards` (L2).
 - In L2 strings, technical proper nouns stay in their original English form; append the formal L2 translation in parentheses: e.g. `編碼器 (Encoder)` for ZH-TW.
 - See Step P2-7 for full bilingual rules.
+
+**Content completeness (default behaviour):**
+- When the input is a report, document, or file, **every sentence/point from the source must be represented somewhere in the cardbox**. No sentence may be discarded.
+- Sentences may be **reformed** — condensed, re-worded, split, merged, or remapped into a pattern (bar, table, quote, pick, text, etc.) — but their information must survive into the deck.
+- Distribute the material across Sets and cards as needed; add cards rather than dropping content. A single Set may hold many cards (mixed patterns) to absorb all source points.
+- **This is the default and is overridable.** If the user asks for a summary, a highlights deck, a length cap, or any other selective treatment, follow that instruction instead.
 
 ---
 
@@ -138,7 +144,7 @@ Example:
 
 ### Step P2-2 — Pattern + variant resolution
 
-Map each card to the visualisation library. Every card in a multi-card Set shares the same `pattern` (the cover's pattern); only `variant` differs.
+Map each card to the visualisation library. **Each Set begins with its own `"pattern":"cover"` card** (Card 0), followed by any number of content cards. Cards within a Set **may use the same or different patterns** — pick whichever pattern best fits each card's content. A Set is not locked to a single pattern; only the leading cover card is fixed.
 
 | Visualization type | JSONL `pattern` | Documented variants |
 |---|---|---|
@@ -184,9 +190,9 @@ Map each card to the visualisation library. Every card in a multi-card Set share
 > **`"pattern":"toc"` is prohibited.** The viewer silently skips any card with that pattern — the Outline is auto-generated on every load and is never stored in the file.
 
 **Rules:**
-- **Card 0 of every Set** is the cover/default — omit `variant` (or use `"default"`).
-- **Cards 1+ are variants** — pick the documented variant string that best describes the layout. If no exact match, pick the closest; the viewer falls back to default rendering.
-- For Set 0 (the deck cover), `pattern:"cover"`. For all other sets, `pattern` is one of the visualization types from the table above.
+- **Card 0 of every Set** is that Set's cover — `"pattern":"cover"` with `tag`, `title`, `subline`. Omit `variant` (or use `"default"`).
+- **Cards 1+** each carry their own `pattern` — same as or different from sibling cards, chosen to best fit each card's content. For each card, pick the documented `variant` string that best describes its layout; if no exact match, pick the closest and the viewer falls back to default rendering.
+- For Set 0 (the deck cover), the single card is `pattern:"cover"`. For every content Set, Card 0 is `pattern:"cover"` and Cards 1+ are any of the visualization types from the table above.
 
 ---
 
@@ -876,8 +882,9 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 - [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`, `"v":3` (always v3 for viewer edit compatibility)
 - [ ] No `"pattern":"toc"` cards in file (viewer auto-generates Outline at viewer set 1)
 - [ ] Cards in box reading order: Set 0 Card 0 → Set 0 Card 1 → … → Set N Card last
-- [ ] Card 0 of each Set has no `variant` field (it is the cover/default)
-- [ ] Pattern shared across all cards in a Set; only `variant` differs (exception: hybrid layouts use different patterns per column)
+- [ ] Card 0 of each Set is `pattern:"cover"` with no `variant` field
+- [ ] Cards within a Set may use the same or different patterns; each card carries its own `pattern` (cover excepted)
+- [ ] Content completeness honoured: every source sentence/point is present somewhere in the deck (reformed, not discarded) — unless the user set a different requirement
 - [ ] All hex colours in `content.*.color` and `content.*.accent` rewritten as palette keys
 - [ ] Palette names are semantic (`planA`, `agoda`, `bronze`) — never slot indices unless entity is unnamed
 - [ ] Variants chosen from the documented list per pattern (see P2-2) or omitted for default

@@ -4,6 +4,7 @@
 
 | Version | Date | Changes |
 |---|---|---|
+| **3.6.0** | 2026-05-30 | Mixed patterns per Set — cards within a Set may use the same or different patterns (each carries its own `pattern`); every Set still begins with its own `"pattern":"cover"` card (P2-2 rules and design checklist updated). New content-completeness default (Phase 1): when input is a report/document/file, every source sentence/point must be represented somewhere in the deck — reformed (condensed, split, merged, remapped to a pattern) but never discarded; add cards rather than drop content. Overridable when the user requests a summary, highlights, or length cap |
 | **3.5.0** | 2026-05-28 | Audio pattern adds optional `lyric` field — URL to `.vtt` or `.srt` file for synced lyric display during playback (viewer v4.15.0+) |
 | **3.4.0** | 2026-05-27 | `audio` and `video` patterns replace `multimedia` — new decks use `audio` or `video` directly; legacy `multimedia` accepted and auto-migrates on load. `dual` and `fulldual` layouts removed from documented set (4 layouts remain: `title`, `full`, `dual-hybrid`, `fulldual-hybrid`); old names accepted for backward compatibility and auto-migrate to hybrid equivalents. Description updated: 4 layouts, 5 content patterns |
 | **3.3.0** | 2026-05-27 | Always emit `"v":3` in metadata — viewer edit panel (pattern/layout/variant selectors) requires format v3; all v1 and v2 patterns work identically under v3. Removed conditional v1/v2 guidance from P2-1, P2-2, P2-4c, P2-8, and design checklist |

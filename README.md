@@ -5,7 +5,7 @@
 
 A [Claude Code](https://claude.ai/code) skill that generates `.cards` JSONL deck files for the [Card Box Viewer](https://card.trth.nl).
 
-**Current version: 3.5.0**
+**Current version: 3.6.0**
 
 ---
 
