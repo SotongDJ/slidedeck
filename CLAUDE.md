@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repository Is
 
-This is a **Claude Code skill repository**. The `SKILL.md` is the skill specification — a step-by-step template that instructs Claude how to generate `.cards` JSONL deck files for the Card Box Viewer (card.trth.nl).
+This is a **Claude Code skill repository**. The `SKILL.md` is the skill specification — a step-by-step template that instructs Claude how to generate `.cards` JSONL deck files for the Universal Cardbox viewer (card.trth.nl).
 
 There is no build system, no npm packages, no compilation step. The output of the skill is a single `.cards` file — plain UTF-8 JSONL, one JSON object per line. No HTML, CSS, or JS.
 
-> **HTML output removed in v3.0.0.** For `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
+> **HTML output removed in v3.0.0.** For `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Cardbox), use **v2.x** of this skill.
 
 ## Skill Invocation
 
@@ -70,7 +70,7 @@ Generated `.cards` output must use **one JSON object per line** with **no extra 
 
 ## Updating the Skill Spec
 
-When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. Current version: **3.6.0** (2026-05-30).
+When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. The frontmatter `description` must stay **under 1000 characters**, and the `/skill-creator:skill-creator` skill should be run to check completeness before release. Current version: **4.0.0** (2026-06-06).
 
 ### Version release workflow
 

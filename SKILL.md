@@ -1,28 +1,29 @@
 ---
-name: mobile-slidedeck
+name: slidedeck
 description: >
-  Generate a `cards` deck file for the Card Box Viewer.
-  Use this skill for the user to present structured content as a cardbox: a viewer-ready JSONL file
-  Phase 1: gather codename, lang (mono/bi), orientation, topic.
+  Generate a `cards` deck file for the Universal Cardbox viewer.
+  Phase 1: gather codename, lang (mono/bi), orientation, topic;
+  podcast mode also needs audio, SRT/VTT subtitle, and episode info markdown.
   Phase 2: generate {codename}_box.cards — UTF-8 JSONL, one JSON object per line, no HTML.
   Orientation hint (portrait default) guides content density.
-  Default language is English only. Ask user if bilingual is needed and what the second language is.
-  For HTML output, use v2.x of this skill instead.
-  Format v2 adds 17 SVG data visualisation: line, area, pie, donut, scatter, histogram,
-  stacked-bar, boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
-  Format v3 adds two-level patterns (layout + pattern) with 4 layouts (title, full,
-  dual-hybrid, fulldual-hybrid) and 5 content patterns (text, image, audio, video, embed).
-  Max 10 data points per figure; downsample larger datasets via quartile method.
-  Trigger on: make slidedeck
+  Default language English; ask if bilingual and which second language.
+  Format v2 adds 17 SVG plots: line, area, pie, donut, scatter, histogram, stacked-bar,
+  boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
+  Format v3 adds two-level patterns (layout + pattern) with 4 layouts and
+  5 content patterns (text, image, audio, video, embed).
+  Format v4 adds podcast mode: set 0 is a single `podcast` card (audio + SRT/VTT);
+  chapter timepoint as cover-title suffix [HH:MM:SS]; set class keyword in cover tag.
+  Max 10 data points per figure (quartile downsampling).
+  Trigger on: make slidedeck, make a podcast cardbox
 ---
 
-# Mobile Slidedeck & Card Box Skill
+# Slidedeck & Cardbox Skill
 
-Generates a `.cards` JSONL deck file for the Card Box Viewer. No HTML, CSS, or JS output.
+Generates a `.cards` JSONL deck file for the Universal Cardbox viewer. No HTML, CSS, or JS output.
 
-> **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Card Box), use **v2.x** of this skill.
+> **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Cardbox), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 3.6.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 4.0.0**
 
 ---
 
@@ -42,6 +43,9 @@ Before generating, collect:
 | **Orientation hint** | Detect | `portrait` (default) or `landscape`. Infer from "widescreen", "desktop", "16:9". Affects layout choices in content schemas (`cols`, stacked vs wide layouts). |
 | **Focus topic** | If source is broad | Which aspect(s) of the source to emphasise |
 | **Set count preference** | Optional | User may specify N; otherwise infer from content structure |
+| **Podcast audio** | Podcast mode | URL or local file of the episode audio. If the user cannot provide it, emit `"src":""` as a placeholder — they attach it later via the Cardbox edit mode |
+| **Podcast subtitle** | Podcast mode | SRT or VTT file/URL for synced captions. If unavailable, emit `"srt":""` as a placeholder |
+| **Podcast info markdown** | Podcast mode | Episode info: title, show/artist, description, stats (runtime, publish date), and the chapter/segment structure with timepoints |
 
 **Bilingual mode (when user confirms bilingual + specifies L2):**
 - Default language is always **English** (L1); L2 is whatever the user specifies.
@@ -57,9 +61,9 @@ Before generating, collect:
 
 ---
 
-## Phase 2 — Generate Card Box Data (`{codename}_box.cards`)
+## Phase 2 — Generate Cardbox Data (`{codename}_box.cards`)
 
-Generate a structured **JSONL** file that the **Card Box Viewer** can render. One JSON object per line; no HTML, CSS, or JS.
+Generate a structured **JSONL** file that the **Universal Cardbox** viewer can render. One JSON object per line; no HTML, CSS, or JS.
 
 **Output:** `{codename}_box.cards` — UTF-8, one JSON object per line, no BOM, no trailing comma.
 
@@ -72,7 +76,7 @@ Generate a structured **JSONL** file that the **Card Box Viewer** can render. On
 | **P2-5** | Build semantic `palette` and use palette keys for all colour references |
 | **P2-6** | Emit optional `theme` overrides if customising CSS variables beyond defaults |
 | **P2-7** | Handle bilingual decks (one JSONL per language) |
-| **P2-8** | Validate against Card Box Viewer schema |
+| **P2-8** | Validate against Cardbox viewer schema |
 
 ---
 
@@ -89,7 +93,7 @@ JSONL set N   →  Viewer set N+1
 ```
 
 **Rules:**
-- Set 0 must contain exactly one card: `"pattern":"cover"`.
+- Set 0 must contain exactly one card: `"pattern":"cover"` (or `"pattern":"podcast"` for podcast decks — see Step P2-4e).
 - **Never emit `"pattern":"toc"`** — the viewer silently skips any card with that pattern and generates the Outline itself.
 - Content sets start at `"set":1` in the JSONL.
 - Each content set's first card should be `"pattern":"cover"` with `tag`, `title`, and `subline` — these become the Outline entry.
@@ -125,7 +129,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 | Field | Required | Notes |
 |---|---|---|
 | `type` | Yes | Always `"meta"` |
-| `v` | Yes | Always `3`. The viewer's edit panel (pattern/layout/variant selectors) requires `v:3`; all v1 and v2 patterns work identically under v3 |
+| `v` | Yes | Always `4`. The viewer's edit panel requires v3+ and podcast mode requires `v:4`; all v1–v3 patterns work identically under v4 |
 | `title` | Yes | Deck title (matches the cover card title) |
 | `subtitle` | If present | From cover-slide subtitle |
 | `codename` | Yes | Same value as Phase 1; viewer uses for `localStorage` keying |
@@ -137,7 +141,7 @@ The first line of the JSONL is a single JSON object marking the deck. **Do not p
 Example:
 
 ```json
-{"type":"meta","v":3,"title":"Visualization Library","subtitle":"35 patterns","codename":"vizdemo","version":"v3.2.0","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
+{"type":"meta","v":4,"title":"Visualization Library","subtitle":"35 patterns","codename":"vizdemo","version":"v4.0.0","language":"en","palette":{"planA":"#0A2766","planB":"#B83030","tripcom":"#1E7A3C"}}
 ```
 
 ---
@@ -186,13 +190,15 @@ Map each card to the visualisation library. **Each Set begins with its own `"pat
 | Audio player | `"audio"` | _(no variants)_ |
 | Video player | `"video"` | _(no variants)_ |
 | Embed (HTML element) | `"embed"` | _(no variants)_ |
+| **Format v4 — podcast mode** |||
+| Podcast episode card (Set 0, podcast decks) | `"podcast"` | _(no variants — see Step P2-4e)_ |
 
 > **`"pattern":"toc"` is prohibited.** The viewer silently skips any card with that pattern — the Outline is auto-generated on every load and is never stored in the file.
 
 **Rules:**
 - **Card 0 of every Set** is that Set's cover — `"pattern":"cover"` with `tag`, `title`, `subline`. Omit `variant` (or use `"default"`).
 - **Cards 1+** each carry their own `pattern` — same as or different from sibling cards, chosen to best fit each card's content. For each card, pick the documented `variant` string that best describes its layout; if no exact match, pick the closest and the viewer falls back to default rendering.
-- For Set 0 (the deck cover), the single card is `pattern:"cover"`. For every content Set, Card 0 is `pattern:"cover"` and Cards 1+ are any of the visualization types from the table above.
+- For Set 0 (the deck cover), the single card is `pattern:"cover"` — or `pattern:"podcast"` in podcast decks (Step P2-4e). For every content Set, Card 0 is `pattern:"cover"` and Cards 1+ are any of the visualization types from the table above.
 
 ---
 
@@ -220,7 +226,7 @@ Map each card to the visualisation library. **Each Set begins with its own `"pat
 
 Author the values in these shapes. Numbers stay as numbers; never wrap them as strings unless the viewer does so (e.g. `"∞"`, `"99.9"`).
 
-**Inline HTML in text fields.** Strings inside `content.*` fields (`text`, `description`, `notes`, `subline`, `note`, `foot`, `sub`, etc.) accept a small safe subset of inline tags only: `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>`. **Do not emit `<span>`** in any form, including `<span style="color:var(--yes);">`. The Card Box Viewer renders these strings without applying CSS variables from a stylesheet, so coloured spans surface as literal text. Use leading signs (`+`, `-`) to convey polarity rather than colour, or wrap in `<strong>` for emphasis. Hex/colour intent for non-text elements belongs in `accent` / `color` palette keys, not inline styles.
+**Inline HTML in text fields.** Strings inside `content.*` fields (`text`, `description`, `notes`, `subline`, `note`, `foot`, `sub`, etc.) accept a small safe subset of inline tags only: `<strong>`, `<em>`, `<br>`, `<sup>`, `<sub>`. **Do not emit `<span>`** in any form, including `<span style="color:var(--yes);">`. The Cardbox viewer renders these strings without applying CSS variables from a stylesheet, so coloured spans surface as literal text. Use leading signs (`+`, `-`) to convey polarity rather than colour, or wrap in `<strong>` for emphasis. Hex/colour intent for non-text elements belongs in `accent` / `color` palette keys, not inline styles.
 
 #### `cover`
 ```json
@@ -427,7 +433,7 @@ This applies to all data arrays: `series[].values`, `points[]`, `bins[]`, `slice
 
 ### Step P2-4c — Format v2 plot content schemas
 
-All plots are rendered as inline SVG by the viewer. Always set `"v":3` in the metadata line (not `"v":2`) — v3 is a superset that enables the viewer's full editing capabilities.
+All plots are rendered as inline SVG by the viewer. Always set `"v":4` in the metadata line (not `"v":2`) — v4 is a superset that enables the viewer's full editing capabilities and podcast mode.
 
 #### `line`
 ```json
@@ -651,7 +657,7 @@ All four OHLC fields required per candle. `bullColor`/`bearColor` default to gre
 
 ### Step P2-4d — Format v3 layout system and content schemas
 
-When using two-level patterns (layout + pattern), set `"v":3` in the metadata line.
+Two-level patterns (layout + pattern) require format v3+ — covered by the always-`"v":4` metadata line.
 
 #### Layout modes
 
@@ -742,6 +748,69 @@ Only allowlisted HTML tags are rendered: `<iframe>`, `<video>`, `<audio>`, `<can
 
 ---
 
+### Step P2-4e — Podcast mode (format v4)
+
+When the user asks for a **podcast cardbox** (inputs from Phase 1: podcast audio, podcast subtitle, podcast info markdown), generate a podcast deck. A deck whose set 0 cover card has `"pattern":"podcast"` switches the Cardbox viewer into podcast mode: a floating player bar with playback controls, synced captions, chapter chips, auto-pilot set-following, and minimize.
+
+#### Set 0 — the `podcast` card
+
+Set 0 contains exactly **one** card with `"pattern":"podcast"` (it replaces the deck cover card):
+
+```json
+{"set":0,"pattern":"podcast","tag":"PODCAST","title":"Ep 12 — The Long Now","content":{"src":"https://example.com/ep12.mp3","srt":"https://example.com/ep12.srt","cover":"https://example.com/cover.jpg","artist":"Show Name","description":"Episode synopsis.","stats":[{"val":"58:24","lbl":"Runtime"},{"val":"2026-06-01","lbl":"Published"}],"footer":"© Show Name"}}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `src` | Yes | Episode audio URL. **Placeholder convention:** if the user cannot provide audio, emit `"src":""` — the viewer shows an "attach via edit mode" notice and the user adds the file later with the Cardbox edit tool |
+| `srt` | Yes | SRT or VTT subtitle URL for synced captions. `"srt":""` placeholder allowed (caption toggle stays disabled) |
+| `cover` | No | Episode/show cover image URL |
+| `artist` | No | Show or artist name |
+| `description` | No | Episode synopsis (safe inline HTML subset) |
+| `stats` | No | `{val, lbl}` array — runtime, publish date, episode number |
+| `footer` | No | Footer text |
+
+#### Chapter conventions (DIY-friendly — no new card fields)
+
+- **Sets are ordered chronologically** by their position in the episode.
+- Every content set's cover card **title ends with the set's beginning timepoint** in square brackets: `"title":"Main Topic [00:03:12]"`. Accepted forms: `HH:MM:SS`, `HH:MM:SS.mmm`, `MM:SS`, or bare seconds. Timepoints must be **strictly increasing** across sets. Derive them from the subtitle timings and the episode info markdown.
+- Every content set's cover card **tag carries the set's class keyword** (matched case-insensitively): `chapter`, `ads`, `transition`, `opening`, `ending`, `bts`. No keyword → the viewer defaults to `chapter`. Example tags: `"OPENING"`, `"CH 2 · Chapter"`, `"ADS"`, `"BTS"`.
+
+#### Set classes and structure
+
+| Class | Meaning | Set structure |
+|---|---|---|
+| `opening` | Show open / cold open | Single cover card |
+| `chapter` | Content chapter | Content Chapter structure (below) |
+| `ads` | Sponsor / ad break | Single cover card |
+| `transition` | Bit, icebreaker, host–guest interaction, game, short interlude | Single cover card |
+| `ending` | Outro / wrap-up | Single cover card |
+| `bts` | Outtakes, bloopers, Easter eggs | Single cover card |
+
+**Content Chapter structure** — a `chapter` set contains, in order:
+
+1. **Card 0 — cover**: `"pattern":"cover"`, the chapter's **important points** in `content.description` (or headline numbers in `content.stats`). Title carries the timepoint suffix; tag carries the class keyword.
+2. **Extra info card(s)**: `text` or `note` pattern with `"tag":"EXTRA"` — context, background, elaboration.
+3. **Fact info card(s)**: `table`, `stat`, or another data pattern with `"tag":"FACT"` — concrete figures and facts mentioned in the chapter.
+4. **Fact check card(s)**: `quote` pattern with `"tag":"FACT CHECK"`, using `tone` for the verdict — `ok` = verified, `warn` = unverified/uncertain, `danger` = false.
+
+**Density rule:** if a chapter would exceed ~6 cards, split it into multiple sets. The continuation set's cover title gets the timepoint where its material begins, and its tag keeps the `chapter` keyword.
+
+```json
+{"set":1,"pattern":"cover","tag":"OPENING","title":"Welcome [00:00:00]","content":{"description":"Cold open and intro."}}
+{"set":2,"pattern":"cover","tag":"CH 1 · Chapter","title":"Main Topic [00:03:12]","content":{"description":"Key points: …"}}
+{"set":2,"pattern":"note","tag":"EXTRA","title":"Background","content":{"notes":["…"]}}
+{"set":2,"pattern":"stat","tag":"FACT","title":"Numbers Mentioned","content":{"items":[{"val":"41%","lbl":"Adoption"}]}}
+{"set":2,"pattern":"quote","tag":"FACT CHECK","title":"Claims Check","content":{"items":[{"text":"Claim X is accurate.","attr":"— source","tone":"ok"}]}}
+{"set":3,"pattern":"cover","tag":"ADS","title":"Sponsor [12:40]","content":{"description":"Ad read."}}
+```
+
+#### Content completeness (podcast)
+
+The Phase 1 content-completeness default applies to the episode info markdown and the subtitle transcript: every chapter/segment in the source must appear as a set; key claims surface as FACT / FACT CHECK cards. Overridable per user instruction, as usual.
+
+---
+
 ### Step P2-5 — Palette extraction (semantic names)
 
 Walk every card in the deck and collect distinct hex values. Map each hex to a **semantic name derived from the content**, never a slot index.
@@ -793,7 +862,7 @@ Only emit variables that **differ from the viewer's defaults**. Omit `meta.theme
 
 ### Step P2-7 — Bilingual decks
 
-The Card Box Viewer renders one language at a time — it does not understand `{en, l2}` objects. For bilingual decks:
+The Cardbox viewer renders one language at a time — it does not understand `{en, l2}` objects. For bilingual decks:
 
 - **Default**: serialise the **L1 (English)** strings only. Set `"language":"en"` in metadata.
 - **L2 only**: if the user wants the L2 file, serialise the L2 strings and set `"language"` to the BCP-47 code (e.g. `"zh-TW"`, `"ja"`, `"es"`).
@@ -805,7 +874,7 @@ Do not embed `{en, l2}` objects inside `content.*` — the viewer treats every s
 
 ### Step P2-8 — Validation
 
-Before delivering the file, verify it would pass the **Card Box Validator**. Cross-check against this list:
+Before delivering the file, verify it would pass the **Cardbox Validator**. Cross-check against this list:
 
 - [ ] Line 1 is a JSON object with `type:"meta"` (or no `pattern` field — the validator is lenient on the marker but emits a warning)
 - [ ] Metadata has `title` and `codename`
@@ -831,7 +900,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `checklist` → `items`
 - [ ] Radar `series[].values.length === axes.length`; `max` is a positive number
 - [ ] KPI `direction` ∈ `{up, dn}`; quote `tone` ∈ `{ok, warn, danger}`
-- [ ] `meta.v` is always `3` — required for the viewer's edit panel (pattern/layout/variant selectors)
+- [ ] `meta.v` is always `4` — required for the viewer's edit panel and podcast mode
 - [ ] Format v2 required keys per plot pattern:
   - `line` / `area` → `labels`, `series`; `series[].values.length === labels.length`
   - `pie` / `donut` → `slices`
@@ -847,7 +916,7 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `gantt` → `tasks` with `start`, `end`
   - `treemap` → `items` with `value`
   - `sankey` → `nodes`, `links` with `from`, `to`, `value`; indices valid into `nodes`
-- [ ] Format v3 layout validation (layout field available because `meta.v` is always `3`):
+- [ ] Format v3 layout validation (layout field available because `meta.v` is always `4`):
   - `layout` ∈ `{title, full, dual-hybrid, fulldual-hybrid}` (or absent for default `title`)
   - `dual-hybrid` / `fulldual-hybrid` → `left` and `right` top-level fields with `pattern` and `content`
   - `full` / `fulldual-hybrid` → `title`, `tag`, `subline`, `note` are ignored (not rendered)
@@ -857,6 +926,14 @@ Before delivering the file, verify it would pass the **Card Box Validator**. Cro
   - `audio` → `src` (URL string); optional `cover`, `title`, `artist`, `lyric`
   - `video` → `src` (URL string); optional `poster`
   - `embed` → `html` (string with allowlisted tags only: iframe, video, audio, canvas)
+- [ ] Format v4 podcast validation (podcast decks only):
+  - Set 0 contains exactly one card with `pattern:"podcast"`
+  - Podcast `content` has both `src` and `srt` keys (empty string allowed as placeholder)
+  - Every content set's cover title ends with a parseable `[timepoint]` suffix
+  - Timepoints strictly increase across sets (chronological order)
+  - Every content set's cover tag contains a class keyword ∈ `{chapter, ads, transition, opening, ending, bts}` (or none → defaults to chapter)
+  - Non-chapter sets (`opening`/`ending`/`ads`/`transition`/`bts`) contain exactly one card
+  - Chapter sets follow the Content Chapter structure (cover → EXTRA → FACT → FACT CHECK)
 - [ ] No data array exceeds 10 elements (see P2-4b data density rule)
 - [ ] Set indices form a contiguous sequence starting at 0 (preferred for round-trip ordering)
 - [ ] Card 0 of each Set has no `variant` (or `variant:"default"`)
@@ -879,7 +956,7 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 
 ## Phase 2 design checklist
 
-- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`, `"v":3` (always v3 for viewer edit compatibility)
+- [ ] First line: object with `type:"meta"`, `title`, `codename`, `palette`, `"v":4` (always v4 for viewer edit + podcast compatibility)
 - [ ] No `"pattern":"toc"` cards in file (viewer auto-generates Outline at viewer set 1)
 - [ ] Cards in box reading order: Set 0 Card 0 → Set 0 Card 1 → … → Set N Card last
 - [ ] Card 0 of each Set is `pattern:"cover"` with no `variant` field
@@ -896,7 +973,8 @@ UTF-8 encoding. One JSON object per line. No BOM. The trailing newline at end-of
 - [ ] Checklist items have `"id"` fields; `status` ∈ `{empty, check, strikethrough}`; `variant` ∈ `{default, numbered, grid}`
 - [ ] v3 layout: `dual-hybrid`/`fulldual-hybrid` have top-level `left` + `right` with `{pattern, content}`
 - [ ] v3 patterns: `text` has `paragraphs`; `image` has `src`; `audio` has `src` (optional `cover`, `title`, `artist`); `video` has `src` (optional `poster`); `embed` has `html`
+- [ ] Podcast decks: set 0 = single `podcast` card with `src` + `srt` (empty placeholders allowed); sets chronological; cover titles end with `[timepoint]`; cover tags carry class keywords; chapter sets use cover → EXTRA → FACT → FACT CHECK; dense chapters split into multiple sets
 - [ ] One self-contained `.cards` file
 - [ ] UTF-8 encoding, no BOM, no trailing comma, no comments
 - [ ] No data array exceeds 10 items; datasets >10 downsampled via quartile method (P2-4b)
-- [ ] Validates against the Card Box Validator with zero errors
+- [ ] Validates against the Cardbox Validator with zero errors
