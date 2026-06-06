@@ -1,9 +1,10 @@
 # Changelog
 
-## slidedeck skill
+## cardbox skill
 
 | Version | Date | Changes |
 |---|---|---|
+| **4.0.1** | 2026-06-06 | Skill canonical name renamed `slidedeck` → `cardbox` to prevent a naming conflict with Claude Code's built-in slidedeck skill (frontmatter `name`, release artifact `cardbox-vX.Y.Z.skill`, headings); repository keeps its historical `slidedeck` name. Trigger phrase "make a cardbox" added to description |
 | **4.0.0** | 2026-06-06 | Skill renamed `mobile-slidedeck` → `slidedeck` (frontmatter name, release artifact `slidedeck-vX.Y.Z.skill`); viewer renamed to "Universal Cardbox" throughout. Podcast mode (format v4, requires Cardbox v7.0.0+): Phase 1 gathers podcast audio, SRT/VTT subtitle, and episode info markdown (`""` placeholders allowed when unavailable — attach later via Cardbox edit mode); new Step P2-4e — set 0 is a single `podcast` card (`src`, `srt`, `cover`, `artist`, `description`, `stats`, `footer`) replacing the deck cover; sets ordered chronologically with DIY chapter conventions: beginning timepoint as cover-title suffix `[HH:MM:SS]`, set class keyword in cover tag (`chapter`/`ads`/`transition`/`opening`/`ending`/`bts`, default chapter); chapter sets use Content Chapter structure (cover key points → EXTRA → FACT → FACT CHECK with quote tones); non-chapter sets single-cover; dense chapters split across sets. Metadata `"v"` now always `4` (P2-1, P2-4c, P2-8, design checklist updated); P2-8 podcast validation rules added |
 | **3.6.0** | 2026-05-30 | Mixed patterns per Set — cards within a Set may use the same or different patterns (each carries its own `pattern`); every Set still begins with its own `"pattern":"cover"` card (P2-2 rules and design checklist updated). New content-completeness default (Phase 1): when input is a report/document/file, every source sentence/point must be represented somewhere in the deck — reformed (condensed, split, merged, remapped to a pattern) but never discarded; add cards rather than drop content. Overridable when the user requests a summary, highlights, or length cap |
 | **3.5.0** | 2026-05-28 | Audio pattern adds optional `lyric` field — URL to `.vtt` or `.srt` file for synced lyric display during playback (viewer v4.15.0+) |

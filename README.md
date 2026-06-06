@@ -1,11 +1,13 @@
-# Slidedeck & Cardbox Skill
+# Cardbox Skill
 
 [![Pipeline Status](https://gitlab.com/djtratoh/card.trth.nl/badges/main/pipeline.svg)](https://gitlab.com/djtratoh/card.trth.nl/-/commits/main)
 [![Release Skill](https://github.com/SotongDJ/slidedeck/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/SotongDJ/slidedeck/actions/workflows/release.yml)
 
 A [Claude Code](https://claude.ai/code) skill that generates `.cards` JSONL deck files for the [Universal Cardbox](https://card.trth.nl).
 
-**Current version: 4.0.0**
+The skill is named **`cardbox`** (renamed from `slidedeck` in v4.0.1 to avoid a naming conflict with Claude Code's built-in slidedeck skill); this repository keeps its historical `slidedeck` name.
+
+**Current version: 4.0.1**
 
 ---
 
@@ -27,7 +29,7 @@ The full step-by-step skill specification is in [`SKILL.md`](SKILL.md).
 
 ## Releases
 
-Each tagged release publishes a `slidedeck-vX.Y.Z.skill` zip on the [Releases](../../releases) page. Download and install it in Claude Code as a custom skill.
+Each tagged release publishes a `cardbox-vX.Y.Z.skill` zip on the [Releases](../../releases) page. Download and install it in Claude Code as a custom skill.
 
 ---
 

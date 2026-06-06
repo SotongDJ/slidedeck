@@ -70,7 +70,7 @@ Generated `.cards` output must use **one JSON object per line** with **no extra 
 
 ## Updating the Skill Spec
 
-When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. The frontmatter `description` must stay **under 1000 characters**, and the `/skill-creator:skill-creator` skill should be run to check completeness before release. Current version: **4.0.0** (2026-06-06).
+When modifying `SKILL.md` (the skill spec), bump the version string in `SKILL.md` and add a changelog row to `CHANGELOG`. The frontmatter `description` must stay **under 1000 characters**, and the `/skill-creator:skill-creator` skill should be run to check completeness before release. The skill's canonical name is **`cardbox`** (renamed from `slidedeck` in v4.0.1 to avoid conflicting with Claude Code's built-in slidedeck skill); the repository keeps its historical `slidedeck` name. Current version: **4.0.1** (2026-06-06).
 
 ### Version release workflow
 

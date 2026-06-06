@@ -1,12 +1,12 @@
 ---
-name: slidedeck
+name: cardbox
 description: >
   Generate a `cards` deck file for the Universal Cardbox viewer.
   Phase 1: gather codename, lang (mono/bi), orientation, topic;
   podcast mode also needs audio, SRT/VTT subtitle, and episode info markdown.
   Phase 2: generate {codename}_box.cards — UTF-8 JSONL, one JSON object per line, no HTML.
   Orientation hint (portrait default) guides content density.
-  Default language English; ask if bilingual and which second language.
+  Default language English; ask if bilingual.
   Format v2 adds 17 SVG plots: line, area, pie, donut, scatter, histogram, stacked-bar,
   boxplot, heatmap, waterfall, funnel, candlestick, bubble, violin, gantt, treemap, sankey.
   Format v3 adds two-level patterns (layout + pattern) with 4 layouts and
@@ -14,16 +14,16 @@ description: >
   Format v4 adds podcast mode: set 0 is a single `podcast` card (audio + SRT/VTT);
   chapter timepoint as cover-title suffix [HH:MM:SS]; set class keyword in cover tag.
   Max 10 data points per figure (quartile downsampling).
-  Trigger on: make slidedeck, make a podcast cardbox
+  Trigger on: make a cardbox, make slidedeck, make a podcast cardbox
 ---
 
-# Slidedeck & Cardbox Skill
+# Cardbox Skill
 
-Generates a `.cards` JSONL deck file for the Universal Cardbox viewer. No HTML, CSS, or JS output.
+Generates a `.cards` JSONL deck file for the Universal Cardbox viewer. No HTML, CSS, or JS output. (Skill named `cardbox` to avoid conflicting with Claude Code's built-in slidedeck skill; the repository keeps its historical `slidedeck` name.)
 
 > **HTML output removed in v3.0.0.** To generate `{codename}_desk.html` (Slidedeck) or `{codename}_box.html` (Cardbox), use **v2.x** of this skill.
 
-**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 4.0.0**
+**Output:** `{codename}_box.cards` — UTF-8 JSONL, one JSON object per line; line 1 = metadata, lines 2..N = cards. **Version: 4.0.1**
 
 ---
 
